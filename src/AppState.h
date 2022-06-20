@@ -3,7 +3,9 @@
 class GuiComponents;
 class TextReceiver;
 class GLFWwindow;
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 #include <codecvt>
 #include <iostream>
 #include <string>

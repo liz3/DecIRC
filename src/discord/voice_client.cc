@@ -294,15 +294,27 @@ void DiscordVoiceClient::receive_loop() {
     }
 
     uint32_t* int_ptr = reinterpret_cast<uint32_t*>(&received[4]);
+  #ifdef _WIN32
+    uint32_t ssrc = _byteswap_ulong(int_ptr[1]);
+  #else
     uint32_t ssrc = __builtin_bswap32(int_ptr[1]);
+    #endif
     if (ssrc == own_ssrc)
       continue;
     if (decoders_map.count(ssrc)) {
+      #ifdef _WIN32
+      uint32_t timestamp = _byteswap_ulong(int_ptr[0]);
+      #else
       uint32_t timestamp = __builtin_bswap32(int_ptr[0]);
+      #endif
       std::vector<uint8_t> header =
           std::vector(received.begin(), received.begin() + 12);
       uint16_t* initptr = reinterpret_cast<uint16_t*>(&header[0]);
-      uint16_t seq = __builtin_bswap32(initptr[1]);
+      #ifdef _WIN32
+      uint16_t seq = _byteswap_ushort(initptr[1]);
+      #else
+      uint16_t seq = __builtin_bswap16(initptr[1]);
+      #endif
       std::memcpy(nonce, received.data() + (received.size() - 4), 4);
       std::vector<uint8_t> outBuffer(received.size() - 16);
       int res = crypto_secretbox_open_easy(outBuffer.data(), &received[12],
@@ -320,7 +332,11 @@ void DiscordVoiceClient::receive_loop() {
           outBuffer.size() > 4) {
         offset = 4;
         initptr = reinterpret_cast<uint16_t*>(&outBuffer[0]);
+        #ifdef _WIN32
+        uint16_t headerExtensionLength = _byteswap_ushort (initptr[1]);
+        #else
         uint16_t headerExtensionLength = __builtin_bswap16(initptr[1]);
+        #endif
         for (int i = 0; i < headerExtensionLength; ++i) {
           uint8_t b = outBuffer[offset];
           offset++;

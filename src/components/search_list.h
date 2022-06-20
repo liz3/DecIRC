@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 struct SearchItem {
   std::string name;
