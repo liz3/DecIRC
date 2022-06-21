@@ -40,7 +40,6 @@ class RenderMessage {
   float start = 0.0;
   float height = 0.0;
   float content_height = 0.0;
-  std::mutex mtx;
   void fetchImage(std::string url);
 };
 

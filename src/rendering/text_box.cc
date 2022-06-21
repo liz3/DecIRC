@@ -168,7 +168,6 @@ void TextBox::render(float x, float y, float w, float h) {
     if (cp.type == 0) {
       entries.push_back(atlas->render(cp.cp, x + offset, (-y) + offsetY, color,
                                       cp.style, scale));
-      m_shader->bindBuffer();
     } else if (cp.type == 1) {
       auto* res = AppState::gState->client->image_cache.getEmote(cp.emote);
       if (res) {
