@@ -140,7 +140,7 @@ typedef unsigned char boolean;
  */
 #undef TWO_FILE_COMMANDLINE
 
-/* #undef USE_SETMODE */
+#define USE_SETMODE		/* Microsoft has setmode() */
 
 /* Define this if your system needs explicit cleanup of temporary files.
  * This is crucial under MS-DOS, where the temporary "files" may be areas
