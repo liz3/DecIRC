@@ -23,12 +23,15 @@ set(WEBP_BUILD_CWEBP OFF)
 set(WEBP_BUILD_LIBWEBPMUX OFF)
 set(WEBP_BUILD_GIF2WEBP OFF)
 set(WEBP_BUILD_IMG2WEBP OFF)
+if(WIN32)
 set(USE_MBED_TLS ON)
+endif()
 set(DISABLE_PACKAGE_CONFIG_AND_INSTALL ON)
 set(GEN_FILES ON)
 set(SKIP_INSTALL_ALL ON)
 set(IXWEBSOCKET_INSTALL OFF)
 set(MBEDTLS_VERSION_GREATER_THAN_3 ON)
+
 
 add_executable(dec src/audio/opus/opus_wrapper.cc src/rendering/opengl_state.cc src/rendering/glad.c src/rendering/font_atlas.cc src/gui_components.cc src/AppState.cc src/rendering/text_box.cc src/rendering/la.cc src/rendering/text.cc src/rendering/shader.cc src/components/search_list.cc src/main.cc src/components/user_info.cc src/components/text_field.cc src/components/message_list.cc src/discord/discord_client.cc src/discord/image_cache.cc src/discord/message_state.cc src/discord/voice_client.cc third-party/png/lodepng.cpp)
 
@@ -58,7 +61,6 @@ if(WIN32)
 target_link_libraries(dec PUBLIC glfw freetype zlib ixwebsocket opus sodium rtaudio webp libjpeg ws2_32 crypt32)
 else()
 target_link_libraries(dec PUBLIC glfw freetype zlib ixwebsocket opus sodium rtaudio webp libjpeg)
-
 endif()
 file(COPY assets DESTINATION .)
 #set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")

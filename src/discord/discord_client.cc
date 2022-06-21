@@ -37,8 +37,13 @@ void DiscordClient::init(GuiComponents* components) {
   this->components = components;
   auto* t = this;
   t->components->runLater(new std::function([t]() {
-      t->components->status_text.setData("Loading");
+      if(!t->m_token.length())
+         t->components->status_text.setData("Token invalid");
+        else
+       t->components->status_text.setData("Loading");
       }));
+  if(!m_token.length())
+    return;
   connecting = true;
   infstream.zalloc = Z_NULL;
   infstream.zfree = Z_NULL;
