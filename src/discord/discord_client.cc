@@ -35,8 +35,11 @@ void DiscordClient::init(GuiComponents* components) {
   if (ready || connecting)
     return;
   this->components = components;
-  connecting = true;
   auto* t = this;
+  t->components->runLater(new std::function([t]() {
+      t->components->status_text.setData("Loading");
+      }));
+  connecting = true;
   infstream.zalloc = Z_NULL;
   infstream.zfree = Z_NULL;
   infstream.opaque = Z_NULL;
@@ -97,7 +100,10 @@ void DiscordClient::onWsMessage(const ix::WebSocketMessagePtr& msg) {
         }
       }
       std::string dataStr = std::string(c, c + (dataSize));
-      //    std::cout << dataStr << "\n";
+      if (!dataStr.length()) {
+          delete[] c;
+          return;
+      }
       json j = json::parse(dataStr);
       auto p = j.get<DiscordBaseMessage>();
       onMessage(p);
@@ -295,6 +301,10 @@ void DiscordClient::onMessage(DiscordBaseMessage& msg) {
         DiscordReadyPayload p;
         p.fromJson(msg.data);
         onReadyPayload(p);
+        auto* t = this;
+        t->components->runLater(new std::function([t]() {
+            t->components->status_text.setData("Ready");
+            }));
 
       } else if (evType == "VOICE_SERVER_UPDATE") {
         DiscordVoiceServerUpdate update;
@@ -334,9 +344,12 @@ void DiscordClient::onMessage(DiscordBaseMessage& msg) {
           message_state.add_message(message, ch);
         }
         if (active_channel == message.channel_id) {
-          components->message_list.addContent(
-              message_state.message_index[message.id]);
-          AppState::gState->emptyEvent();
+            auto* t = this;
+            std::string id = message.id;
+            components->runLater(new std::function([t, id]() {
+                t->components->message_list.addContent(
+                    t->message_state.message_index[id]);
+                }));
         }
       } else if (evType == "MESSAGE_UPDATE") {
         DiscordMessagePayload message;

@@ -30,11 +30,17 @@ void GuiComponents::init() {
   });
 }
 void GuiComponents::render() {
-  for (auto& t : tasks) {
+
+  if(locked) {
+    std::unique_lock lk(mtx);
+     for (auto& t : tasks) {
     (*t)();
     delete t;
+    } 
+    tasks.clear();
+    lk.unlock();
+    locked = false;
   }
-  tasks.clear();
 
   auto window_width = state->window_width;
   auto window_height = state->window_height;
@@ -66,7 +72,6 @@ void GuiComponents::render() {
     active_popover->render(window_width - w - 20, 10, w,
                            400 > window_height ? window_height - 45 : 400);
   }
-  mtx.unlock();
 }
 GuiComponents::GuiComponents(AppState* _state)
     : header_comp(header_text), status_comp(status_text) {

@@ -1,4 +1,5 @@
 #include "font_atlas.h"
+#include "../utils/unicode_utils.h"
 
 FontAtlas::FontAtlas() {
   valid = false;
@@ -11,6 +12,8 @@ FontAtlas::FontAtlas(uint32_t fontSize, std::vector<std::string> m_fonts) {
     std::string type;
     if (i == 2)
       type = "bold";
+    else if (i == 1)
+        type = "emoji";
     else
       type = "normal";
     fonts[type] = init_font(m_fonts[i], i == 0, type);
@@ -41,31 +44,37 @@ RenderChar FontAtlas::render(int32_t cp,
   std::string target_type = type;
   if (!characters.count(cp)) {
     bool loaded = false;
-    if (type != "normal") {
       if (fonts.count(type)) {
         FontEntry* e = fonts[type];
         uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
         if (glyph_index != 0) {
           lazyLoadCharacter(e, cp, type);
           loaded = true;
-        }
-      }
-    }
+        } 
+      } 
+    
     if (!loaded) {
-      for (std::map<std::string, FontEntry*>::iterator it = fonts.begin();
-           it != fonts.end(); ++it) {
-        auto* e = it->second;
+        std::vector<std::string> order;
+        if (type == "normal") {
+            order = { "normal", "bold", "emoji" };
+        } else {
+            order = { "bold", "normal", "emoji" };
+        }
+      for (auto& s : order) {
+          if (!fonts.count(s))
+              continue;
+        auto* e = fonts[s];
         uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
         if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, it->first);
-          target_type = it->first;
+          lazyLoadCharacter(e, cp, s);
+          target_type = s;
           break;
         }
       }
     }
-
   } else {
     CharacterEntryMap& mp = characters[cp];
+    std::string known_key = mp.entries.begin()->first;
     if (!mp.entries.count(target_type)) {
       if (fonts.count(target_type)) {
         FontEntry* e = fonts[target_type];
@@ -74,14 +83,13 @@ RenderChar FontAtlas::render(int32_t cp,
           lazyLoadCharacter(e, cp, type);
 
         } else {
-          target_type = "normal";
+          target_type = known_key;
         }
       } else {
-        target_type = "normal";
+        target_type = known_key;
       }
     }
   }
-
   auto* entry = &characters[cp].entries[target_type];
   RenderChar r;
   float x2 = x + (entry->left * scale);
@@ -117,7 +125,6 @@ FontEntry* FontAtlas::init_font(std::string path,
     return nullptr;
   }
   entry->hasColor = isColorEmojiFont(face);
-  // if(entry->hasColor)
   if (!entry->hasColor)
     FT_Set_Pixel_Sizes(face, 0, font_size);
   else
@@ -158,6 +165,7 @@ FontEntry* FontAtlas::init_font(std::string path,
       auto bm = face->glyph->bitmap;
       entry.width = bm.width;
       entry.height = bm.rows;
+
       entry.top = face->glyph->bitmap_top;
       entry.left = face->glyph->bitmap_left;
       entry.advance = face->glyph->advance.x >> 6;
@@ -197,6 +205,7 @@ FontEntry* FontAtlas::init_font(std::string path,
       }
 
       glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      if(entry.data.size())
       glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, 0, entry.width, entry.height,
                       GL_RGBA, GL_UNSIGNED_BYTE, &(entry.data[0]));
 
@@ -208,6 +217,7 @@ FontEntry* FontAtlas::init_font(std::string path,
   return entry;
 }
 void FontAtlas::lazyLoadCharacter(FontEntry* fe, int32_t cp, std::string type) {
+  std::vector<int32_t> xx = {cp};
   FT_Face face = fe->face;
   CharacterEntry entry;
   auto f = FT_LOAD_RENDER;
@@ -271,6 +281,7 @@ void FontAtlas::lazyLoadCharacter(FontEntry* fe, int32_t cp, std::string type) {
              mapIter->second.entries.begin();
          it != mapIter->second.entries.end(); ++it) {
       it->second.offset = (float)it->second.xPos / (float)atlas_width;
+      if(it->second.data.size())
       glTexSubImage2D(GL_TEXTURE_2D, 0, it->second.xPos, 0, it->second.width,
                       it->second.height, GL_RGBA, GL_UNSIGNED_BYTE,
                       &it->second.data[0]);
@@ -278,7 +289,7 @@ void FontAtlas::lazyLoadCharacter(FontEntry* fe, int32_t cp, std::string type) {
   }
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
   glTexSubImage2D(GL_TEXTURE_2D, 0, xOffset, 0, entry.width, entry.height,
-                  GL_RGBA, GL_UNSIGNED_BYTE, &entry.data[0]);
+                  GL_RGBA, GL_UNSIGNED_BYTE, entry.data.data());
 
   xOffset += entry.width;
   if (!characters.count(entry.c)) {
@@ -295,50 +306,62 @@ void FontAtlas::bindTexture() {
   glBindTexture(GL_TEXTURE_2D, texture_id);
 }
 float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
-  std::string target_type = type;
-  if (!characters.count(cp)) {
-    bool loaded = false;
-    if (type != "normal") {
-      if (fonts.count(type)) {
-        FontEntry* e = fonts[type];
-        uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
-        if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, type);
-          loaded = true;
+    std::string target_type = type;
+    if (!characters.count(cp)) {
+        bool loaded = false;
+        if (fonts.count(type)) {
+            FontEntry* e = fonts[type];
+            uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
+            if (glyph_index != 0) {
+                lazyLoadCharacter(e, cp, type);
+                loaded = true;
+            }
         }
-      }
-    }
-    if (!loaded) {
-      for (std::map<std::string, FontEntry*>::iterator it = fonts.begin();
-           it != fonts.end(); ++it) {
-        auto* e = it->second;
-        uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
-        if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, it->first);
-          target_type = it->first;
-          break;
+
+        if (!loaded) {
+            std::vector<std::string> order;
+            if (type == "noemal") {
+                order = { "normal", "bold", "emoji" };
+            }
+            else {
+                order = { "bold", "normal", "emoji" };
+            }
+            for (auto& s : order) {
+                if (!fonts.count(s))
+                    continue;
+                auto* e = fonts[s];
+                uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
+                if (glyph_index != 0) {
+                    lazyLoadCharacter(e, cp, s);
+                    target_type = s;
+                    loaded = true;
+                    break;
+                }
+            }
         }
-      }
+        if (!loaded)
+            return 0;
     }
+    else {
+        CharacterEntryMap& mp = characters[cp];
+        std::string known_key = mp.entries.begin()->first;
+        if (!mp.entries.count(target_type)) {
+            if (fonts.count(target_type)) {
+                FontEntry* e = fonts[target_type];
+                uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
+                if (glyph_index != 0) {
+                    lazyLoadCharacter(e, cp, type);
 
-  } else {
-    CharacterEntryMap& mp = characters[cp];
-    if (!mp.entries.count(target_type)) {
-      if (fonts.count(target_type)) {
-        FontEntry* e = fonts[target_type];
-        uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
-        if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, type);
-
-        } else {
-          target_type = "normal";
+                }
+                else {
+                    target_type = known_key;
+                }
+            }
+            else {
+                target_type = known_key;
+            }
         }
-      } else {
-        target_type = "normal";
-      }
     }
-  }
-
   auto e = &characters[cp].entries[target_type];
 
   if (e->hasColor) {

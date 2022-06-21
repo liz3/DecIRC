@@ -222,11 +222,9 @@ RenderMessage::RenderMessage(MessageHolder* holder)
 }
 void RenderMessage::fetchImage(std::string url) {
   auto* t = this;
-  mtx.lock();
   AppState::gState->client->image_cache.fetchImage(
       url, t, [t](bool success, ImageCacheEntry* image) {
         if (!success || image == nullptr) {
-          t->mtx.unlock();
           return;
         }
 
@@ -236,7 +234,6 @@ void RenderMessage::fetchImage(std::string url) {
           t->images.push_back(instance);
         });
         AppState::gState->components->runLater(f);
-        t->mtx.unlock();
       });
 }
 RenderMessage::~RenderMessage() {

@@ -638,7 +638,10 @@ class DiscordGuildPayload : public DiscordMessage {
       nsfw = j["nsfw"];
     else
       nsfw = false;
-    large = j["large"];
+    if (j.contains("large") && j["large"].is_boolean())
+        large = j["large"];
+    else
+        large = false;
 
     if (j.contains("roles") && j["roles"].is_array()) {
       for (json r : j["roles"]) {
@@ -780,7 +783,10 @@ class DiscordMessageReactionPayload : public DiscordMessage {
     me = j["me"];
     json emote = j["emoji"];
     emote_id = emote["id"];
-    emote_name = emote["name"];
+    if (emote.contains("name") && emote["name"].is_string())
+        emote_name = emote["name"];
+    else
+        emote_name = "";
   }
 };
 class DiscordMessageReactionAddPayload : public DiscordMessage {

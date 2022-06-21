@@ -168,6 +168,7 @@ void TextBox::render(float x, float y, float w, float h) {
     if (cp.type == 0) {
       entries.push_back(atlas->render(cp.cp, x + offset, (-y) + offsetY, color,
                                       cp.style, scale));
+      m_shader->bindBuffer();
     } else if (cp.type == 1) {
       auto* res = AppState::gState->client->image_cache.getEmote(cp.emote);
       if (res) {
@@ -192,11 +193,13 @@ void TextBox::render(float x, float y, float w, float h) {
       lOffset = offsetY;
     }
   }
-  glBufferSubData(
-      GL_ARRAY_BUFFER, 0, sizeof(RenderChar) * entries.size(),
-      &entries[0]);  // be sure to use glBufferSubData and not glBufferData
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)entries.size());
+  if (entries.size()) {
+      glBufferSubData(
+          GL_ARRAY_BUFFER, 0, sizeof(RenderChar) * entries.size(),
+          &entries[0]);  // be sure to use glBufferSubData and not glBufferData
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+      glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)entries.size());
+  }
   if (renderCursor) {
     auto offsetY = y + -(lOffset);
     auto offsetX = x + lxOffset;

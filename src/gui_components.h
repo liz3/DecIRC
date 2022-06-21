@@ -47,7 +47,7 @@ class GuiComponents {
       delete t;
       return;
     }
-    mtx.lock();
+    std::lock_guard lk(mtx);
     locked = true;
     std::cout << "task queued\n";
     tasks.push_back(t);
