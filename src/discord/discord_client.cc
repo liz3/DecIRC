@@ -62,6 +62,7 @@ void DiscordClient::init(GuiComponents* components) {
   });
   m_web_socket.start();
 }
+
 void DiscordClient::onWsReady() {
   if (state != Handshake)
     return;
@@ -182,6 +183,17 @@ void DiscordClient::onReadyPayload(DiscordReadyPayload p) {
 void DiscordClient::sendChannelMessage(std::string content) {
   if (!active_channel.length())
     return;
+  if(editMode) {
+      DiscordMessagePayload p;
+      p.content = content;
+       request("/channels/" + active_channel + "/messages/" + editingMessageId, "PATCH", true, &p,
+          nullptr, [](uint16_t http_code, bool success) {});
+
+      components->chat_input.text.setData("");
+      editMode = false;
+      editingMessageId = "";
+      return;
+  }
   DiscordMessagePayload p;
 
   const auto p1 = std::chrono::system_clock::now();
@@ -721,6 +733,19 @@ void DiscordClient::tryDelete() {
     DiscordMessagePayload& msg = m->m_holder->message;
     request("/channels/" + msg.channel_id + "/messages/" + msg.id, "DELETE",
             false, nullptr, nullptr, [](uint16_t http_code, bool success) {});
+  }
+}
+void DiscordClient::tryEdit() {
+  if(editMode)
+    return;
+    auto mlist = components->message_list;
+  if (mlist.selected_index != -1) {
+    auto index = mlist.messages.size() - mlist.selected_index - 1;
+    RenderMessage* m = mlist.messages[index];
+    DiscordMessagePayload& msg = m->m_holder->message;
+    editMode = true;
+    editingMessageId = msg.id;
+    components->chat_input.text.setData(msg.content);
   }
 }
 DiscordClient::DiscordClient() : httpClient(true) {}

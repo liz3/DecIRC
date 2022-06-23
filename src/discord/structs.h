@@ -821,6 +821,7 @@ class DiscordMessagePayload : public DiscordMessage {
   std::string content;
   std::string channel_id;
   int32_t type;
+  std::string edited_timestamp;
   std::map<std::string, DiscordUser> mentions;
   std::map<std::string, DiscordMessageAttachment> attachments;
   std::vector<DiscordMessageEmbed> embeds;
@@ -855,6 +856,11 @@ class DiscordMessagePayload : public DiscordMessage {
       channel_id = j["channel_id"];
     else
       channel_id = "";
+
+    if(j.contains("edited_timestamp") && j["edited_timestamp"].is_string())
+      edited_timestamp = j["edited_timestamp"];
+    else
+      edited_timestamp = "";
 
     if (j.contains("mentions") && j["mentions"].is_array()) {
       for (json u : j["mentions"]) {

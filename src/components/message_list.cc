@@ -54,6 +54,14 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
   }
   box.render(x + 50, y, w, 0);
   y -= content_height;
+    if(m_holder->message.edited_timestamp.length()) {
+    TextWithState edited;
+    TextBox edit_box(edited);
+    edited.setData("edited");
+    edit_box.color = vec4f(0.4,0.4,0.4, 1);
+    edit_box.scale = 0.6;
+    edit_box.render(x+50, y, 0,0);
+  }
   for (auto* em : embeds) {
     y -= 5;
     em->render(x + 70, y, w - 20);
@@ -256,6 +264,8 @@ int RenderMessage::getHeight(float w, float ah) {
   }
   auto base = box.computeHeight(w - 50) * ah;
   content_height = base;
+  if(m_holder->message.edited_timestamp.length())
+    base+= ah * 0.6;
 
   for (auto* em : embeds) {
     base += em->getHeight(w - 70, ah) + 15;

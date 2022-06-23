@@ -52,6 +52,7 @@ class DiscordClient {
   void startDmCall();
   std::string computeVcName();
   void renderUserInfo();
+  void tryEdit();
 
  private:
   DiscordGuildPayload* active_guild = nullptr;
@@ -60,6 +61,8 @@ class DiscordClient {
   bool ready = false;
   bool zInit = false;
   bool startedDmCall = false;
+  bool editMode = false;
+  std::string editingMessageId = "";
   z_stream infstream;
   std::string messageBuffer;
   bool connecting = false;

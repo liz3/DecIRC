@@ -56,8 +56,11 @@ void key_callback(GLFWwindow* window,
       if (isPress && key == GLFW_KEY_D) {
         st->client->tryDelete();
       }
-      if (isPress && key == GLFW_KEY_E) {
+      if (isPress && key == GLFW_KEY_A) {
         st->client->startDmCall();
+      }
+      if (isPress && key == GLFW_KEY_E) {
+        st->client->tryEdit();
       }
       return;
     }
