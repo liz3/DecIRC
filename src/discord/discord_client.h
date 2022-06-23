@@ -34,6 +34,7 @@ class DiscordClient {
   DiscordReadyPayload readyP;
   std::map<std::string, DiscordChannelPayload> private_channels;
   std::map<std::string, DiscordGuildPayload> guilds;
+  std::map<std::string, DiscordPresence> presences;
   std::vector<SearchItem> dm_items;
   std::vector<SearchItem> guild_items;
   std::vector<SearchItem> channel_items;

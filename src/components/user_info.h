@@ -13,12 +13,15 @@ class UserInfo : public Component {
   bool canFocus() override;
   void onFocus(bool focus) override;
   void render(float x, float y, float w, float h) override;
-  void initFrom(DiscordRichUser user);
+  void initFrom(DiscordRichUser user, DiscordPresence presence);
   DiscordRichUser user;
+  DiscordPresence presence;
   Image* user_image = nullptr;
   TextWithState username_text;
   TextBox t_username;
   TextWithState bio_text;
   TextBox t_bio;
+  TextBox t_state;
+  TextWithState state_text;
 };
 #endif

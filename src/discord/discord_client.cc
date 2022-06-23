@@ -289,7 +289,11 @@ void DiscordClient::renderUserInfo() {
                 return;
               }
               t->components->runLater(new std::function([t, user]() {
-                t->components->userInfo.initFrom(*user);
+                DiscordPresence pr;
+                if(t->presences.count(user->user.id)) {
+                  pr = t->presences[user->user.id];
+                }
+                t->components->userInfo.initFrom(*user, pr);
                 t->components->setActivePopover(&t->components->userInfo);
                 delete user;
               }));
@@ -540,6 +544,10 @@ void DiscordClient::onMessage(DiscordBaseMessage& msg) {
         } else {
           message_state.remove_channel(ch.id);
         }
+      } else if(evType == "READY_SUPPLEMENTAL") {
+        DiscordSuplementalReadyPayload r;
+        r.fromJson(msg.data);
+        presences = r.presences;
       }
     }
   }

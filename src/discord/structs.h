@@ -1037,4 +1037,72 @@ class DiscordInitResponseMessage : public DiscordMessage {
     }
   }
 };
+class DiscordPresence : public DiscordMessage {
+ public:
+  std::string user_id;
+  std::string status;
+  std::string custom_status = "";
+  std::string emote_id = "";
+  std::string utf_emote = "";
+  json getJson() override {
+    json j;
+    return j;
+  };
+  void fromJson(json j) override {
+    user_id = j["user_id"];
+    if(j.contains("status") && j["status"].is_string())
+      status = j["status"];
+    else
+      status = "";
+    if(j.contains("activities") && j["activities"].is_array()) {
+      for(json activity : j["activities"]) {
+          if(activity.contains("type") && activity["type"].is_number() && activity["type"] == 4) {
+            if(activity.contains("state") && activity["state"].is_string()) {
+              custom_status = activity["state"];
+            }
+            if(activity.contains("emoji") && activity["emoji"].is_object()) {
+                json emoji = activity["emoji"];
+                if(emoji.contains("id") && emoji["id"].is_string()) {
+                  emote_id = emoji["id"];
+                } else if (emoji.contains("name") && emoji["name"].is_string()) {
+                  utf_emote = emoji["name"];
+                }
+            } 
+            break;
+          }
+      }
+    }
+
+  }
+};
+class DiscordSuplementalReadyPayload : public DiscordMessage {
+ public:
+  std::map<std::string, DiscordPresence> presences;
+  json getJson() override {
+    json j;
+    return j;
+  };
+  void fromJson(json j) override {
+
+    if(j.contains("merged_presences") && j["merged_presences"].is_object()) {
+      json merged_presences = j["merged_presences"];
+      if(merged_presences.contains("guilds") && merged_presences["guilds"].is_array()) {
+        for(json entryParent : merged_presences["guilds"]) {
+            for(json entry : entryParent) {
+                     DiscordPresence presence;
+          presence.fromJson(entry);
+          presences[presence.user_id] = presence;
+            }
+        }
+      }
+      if(merged_presences.contains("friends") && merged_presences["friends"].is_array()) {
+        for(json entry : merged_presences["friends"]) {
+          DiscordPresence presence;
+          presence.fromJson(entry);
+          presences[presence.user_id] = presence;
+        }
+      }
+    }
+  }
+};
 #endif
