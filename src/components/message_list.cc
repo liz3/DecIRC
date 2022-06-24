@@ -30,20 +30,45 @@ void MessageList::render(float x, float y, float w, float h) {
     auto end = msg->start + msg->height;
     i++;
     if (end < currentOffset) {
+      msg->disposeImages();
       continue;
     }
     if (msg->start > currentOffset + availableHeight) {
+           msg->disposeImages();
       continue;
     }
     if (!start) {
       offset = -(currentOffset - msg->start);
       start = true;
     }
+    msg->fetchImages();
     msg->render(x, -(y + offset), width - 50, selected_i == i - 1 && hasFocus);
     offset += msg->height;
   }
 }
+void RenderMessage::disposeImages() {
+  if(!initiatedLoading)
+    return;
+  for (auto*& image : images) {
+    image->remove();
+    delete image;
+  }
+  initiatedLoading = false;
+  images.clear();
+}
+void RenderMessage::fetchImages() {
+  if(initiatedLoading)
+    return;
+  initiatedLoading = true;
+    for (std::map<std::string, DiscordMessageAttachment>::iterator it =
+           m_holder->message.attachments.begin();
+       it != m_holder->message.attachments.end(); ++it) {
+    if (it->second.content_type.find("image") != -1) {
+      fetchImage(it->second.proxy_url);
+    }
+  }
 
+}
 void RenderMessage::render(float x, float y, float w, bool selected) {
   if (selected) {
     Box::render(x, y + (atlas_height), w, -height, vec4f(0.1, 0.1, 0.1, 1));
@@ -80,6 +105,8 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
   y -= 25;
   auto baseOffset = x + 50;
   for (auto& reaction : m_holder->message.reactions) {
+      if (!reaction.second.emote_id.length())
+          continue;
     auto* img = AppState::gState->client->image_cache.getEmote(
         reaction.second.emote_id);
     auto& atlas = AppState::gState->atlas;
@@ -220,13 +247,7 @@ RenderMessage::RenderMessage(MessageHolder* holder)
   for (auto& em : holder->message.embeds) {
     embeds.push_back(new EmbedRender(em));
   }
-  for (std::map<std::string, DiscordMessageAttachment>::iterator it =
-           holder->message.attachments.begin();
-       it != holder->message.attachments.end(); ++it) {
-    if (it->second.content_type.find("image") != -1) {
-      fetchImage(it->second.proxy_url);
-    }
-  }
+
 }
 void RenderMessage::fetchImage(std::string url) {
   auto* t = this;

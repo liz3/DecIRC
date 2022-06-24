@@ -58,6 +58,10 @@ void ImageCache::fetchImage(std::string url,
       } else if (contentType == "image/jpeg" || contentType == "image/jpg") {
         type = Jpg;
       }
+      else {
+          cb(false, nullptr);
+          return;
+      }
       std::string& p = response->body;
       std::vector<uint8_t> in(p.c_str(), p.c_str() + p.length());
       entry.data = in;

@@ -41,6 +41,9 @@ class RenderMessage {
   float height = 0.0;
   float content_height = 0.0;
   void fetchImage(std::string url);
+  void fetchImages();
+  void disposeImages();
+  bool initiatedLoading = false;
 };
 
 class MessageList : public Component {

@@ -772,6 +772,7 @@ class DiscordMessageReactionPayload : public DiscordMessage {
   std::string emote_id;
   bool me = false;
   std::string emote_name;
+  std::string utf_name;
   uint32_t count;
   json getJson() override {
     json j;
@@ -782,11 +783,19 @@ class DiscordMessageReactionPayload : public DiscordMessage {
     count = j["count"];
     me = j["me"];
     json emote = j["emoji"];
-    emote_id = emote["id"];
-    if (emote.contains("name") && emote["name"].is_string())
-        emote_name = emote["name"];
-    else
+    if (emote.contains("id") && emote["id"].is_string()) {
+        emote_id = emote["id"];
+        if (emote.contains("name") && emote["name"].is_string())
+            emote_name = emote["name"];
+        else
+            emote_name = "";
+    }
+    else {
+        utf_name = emote["name"];
         emote_name = "";
+        emote_id = "";
+    }
+
   }
 };
 class DiscordMessageReactionAddPayload : public DiscordMessage {

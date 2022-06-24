@@ -17,6 +17,8 @@ class Image {
   bool valid = false;
 
   void init() {
+        std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
+
     valid = true;
     glGenTextures(1, &tex_id);
     glActiveTexture(GL_TEXTURE0);
@@ -32,6 +34,8 @@ class Image {
                  GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
                     GL_UNSIGNED_BYTE, &data[0]);
+                std::cout << "init:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
+
   }
 
   void remove() {
@@ -71,21 +75,26 @@ class Image {
   void init_from_mem_webp(std::vector<unsigned char>& content) {
     if (valid)
       return;
+    std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
     uint8_t* decoded = WebPDecodeRGBA(&content[0], content.size(), (int*)&width,
                                       (int*)&height);
     data.insert(data.begin(), decoded, decoded + (width * height * 4));
     delete decoded;
+    std::cout << "webp decode:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
     init();
   }
 
   void init_from_mem(std::vector<unsigned char>& content) {
     if (valid)
       return;
+        std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
     unsigned error = lodepng::decode(data, width, height, content);
+        std::cout << "png decode:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
     init();
   }
 
   void init_from_mem_jpeg(std::vector<unsigned char>& content) {
+      std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
     int rc;
     jpeg_decompress_struct cinfo;
     jpeg_error_mgr jerr;
@@ -115,20 +124,25 @@ class Image {
       jpeg_read_scanlines(&cinfo, dest_buff, 1);
     }
 
+    data.resize(width * height * 4);
+
     jpeg_finish_decompress(&cinfo);
 
+    uint8_t* ptr = data.data();
+    uint8_t* src = pixel_buff;
     for (int y = 0; y < height; ++y) {
       for (int x = 0; x < width; ++x) {
-        uint32_t offset = (y * width + x) * 3;
-        data.push_back(pixel_buff[offset]);
-        data.push_back(pixel_buff[offset + 1]);
-        data.push_back(pixel_buff[offset + 2]);
-        data.push_back(255);
+        *(ptr++) = *(src++);
+        *(ptr++) = *(src++);
+        *(ptr++) = *(src++);
+        *(ptr++) = 255;
+
       }
     }
 
     jpeg_destroy_decompress(&cinfo);
     delete[] pixel_buff;
+        std::cout << "jpeg decode:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
 
     init();
   }
@@ -147,6 +161,7 @@ class Image {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6,
                           (GLsizei)selectionBoundaries.size());
+
   }
 };
 #endif
