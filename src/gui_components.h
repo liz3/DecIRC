@@ -7,6 +7,8 @@ class AppState;
 #include "./components/search_list.h"
 #include "./components/text_field.h"
 #include "./components/user_info.h"
+#include "./components/image_overlay.h"
+
 
 #include "./rendering/image.h"
 #include <mutex>
@@ -30,9 +32,10 @@ class GuiComponents {
   MessageList message_list;
   std::thread::id this_id = std::this_thread::get_id();
   bool locked = false;
-  Component* active_popover = nullptr;
+  Popover* active_popover = nullptr;
 
   UserInfo userInfo;
+  ImageOverlay imageOverlay;
   Image testImage;
   GuiComponents(AppState* _state);
 
@@ -53,7 +56,7 @@ class GuiComponents {
     tasks.push_back(t);
     AppState::gState->emptyEvent();
   }
-  void setActivePopover(Component* c) { active_popover = c; }
+  void setActivePopover(Popover* c) { active_popover = c; }
 };
 
 #endif

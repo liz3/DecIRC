@@ -189,7 +189,8 @@ void DiscordClient::sendChannelMessage(std::string content) {
        request("/channels/" + active_channel + "/messages/" + editingMessageId, "PATCH", true, &p,
           nullptr, [](uint16_t http_code, bool success) {});
 
-      components->chat_input.text.setData("");
+      components->chat_input.text.setData(backupData);
+      backupData = "";
       editMode = false;
       editingMessageId = "";
       return;
@@ -753,7 +754,17 @@ void DiscordClient::tryEdit() {
     DiscordMessagePayload& msg = m->m_holder->message;
     editMode = true;
     editingMessageId = msg.id;
+    backupData = components->chat_input.text.getUtf8Value();
     components->chat_input.text.setData(msg.content);
+    AppState::gState->setTextReceiver(&components->chat_input);
   }
+}
+void DiscordClient::cancelEdit() {
+  if(!editMode)
+    return;
+  editMode = false;
+  editingMessageId ="";
+  components->chat_input.text.setData(backupData);
+  backupData = "";
 }
 DiscordClient::DiscordClient() : httpClient(true) {}

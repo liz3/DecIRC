@@ -4,7 +4,7 @@
 #include "../rendering/image.h"
 #include "../rendering/text.h"
 #include <mutex>
-
+#include "text_receiver.h"
 #include "component.h"
 
 #include "../rendering/text_box.h"
@@ -23,13 +23,14 @@ class EmbedRender {
   ~EmbedRender();
   void render(float x, float y, float w);
 };
-class RenderMessage {
+class RenderMessage : public TextReceiver {
  public:
   TextWithState text;
   TextBox box;
   TextWithState title;
   TextBox title_box;
   MessageHolder* m_holder;
+  bool hasFocus = false;
   RenderMessage(MessageHolder* holder);
   std::vector<Image*> images;
   std::vector<EmbedRender*> embeds;
@@ -44,6 +45,17 @@ class RenderMessage {
   void fetchImages();
   void disposeImages();
   bool initiatedLoading = false;
+bool canFocus() override;
+  void onFocus(bool focus) override;
+  void render(float x, float y, float w, float h) override;
+    void onEnter() override;
+  void onCodePoint(int32_t cp) override;
+  void onKey(GLFWwindow* window,
+             int key,
+             int scancode,
+             int action,
+             int mods) override;
+
 };
 
 class MessageList : public Component {

@@ -183,18 +183,18 @@ class Image {
 
   void render(int x, int y, float scale) {
     m_shader = AppState::gState->opengl_state.image_shader;
-    std::vector<SimpleEntry> selectionBoundaries = {
-        {vec2f(x, y), vec2f(width * scale, height * scale)}};
+    SimpleEntry entry = 
+        {vec2f(x, y), vec2f(width * scale, height * scale)};
     m_shader->shader.use();
     m_shader->bindVertexArray();
     m_shader->bindBuffer();
     glBindTexture(GL_TEXTURE_2D, tex_id);
     glBufferSubData(GL_ARRAY_BUFFER, 0,
-                    sizeof(SimpleEntry) * selectionBoundaries.size(),
-                    &selectionBoundaries[0]);
+                    sizeof(SimpleEntry),
+                    &entry);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6,
-                          (GLsizei)selectionBoundaries.size());
+                          1);
 
   }
 };

@@ -44,6 +44,9 @@ void key_callback(GLFWwindow* window,
     if (st->components->active_popover) {
       st->components->setActivePopover(nullptr);
       return;
+    } else if(st->client->editMode) {
+      st->client->cancelEdit();
+      return;
     }
   }
   if (isPress && !ctrl_pressed && !shift_pressed && key == GLFW_KEY_ENTER) {
@@ -53,6 +56,7 @@ void key_callback(GLFWwindow* window,
   }
   if (ctrl_pressed) {
     if (x_pressed) {
+
       if (isPress && key == GLFW_KEY_D) {
         st->client->tryDelete();
       }

@@ -68,9 +68,7 @@ void GuiComponents::render() {
     status_comp.render(abs.x, abs.y, 400, 65);
   }
   if (active_popover) {
-    auto w = 800 > window_width ? window_width - 45 : 800;
-    active_popover->render(window_width - w - 20, 10, w,
-                           400 > window_height ? window_height - 45 : 400);
+    active_popover->render(window_width, window_height);
   }
 }
 GuiComponents::GuiComponents(AppState* _state)

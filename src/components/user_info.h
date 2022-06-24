@@ -1,5 +1,7 @@
 #ifndef DEC_USER_INFO
-#define DEC_USER_INFO value
+#define DEC_USER_INFO
+#include "popover.h"
+
 #include "component.h"
 #include "../discord/structs.h"
 #include "../rendering/text.h"
@@ -7,12 +9,14 @@
 #include "../rendering/box.h"
 #include "../rendering/image.h"
 
-class UserInfo : public Component {
+class UserInfo : public Popover, public Component {
  public:
   UserInfo();
   bool canFocus() override;
   void onFocus(bool focus) override;
   void render(float x, float y, float w, float h) override;
+  void render(float width, float height) override;
+
   void initFrom(DiscordRichUser user, DiscordPresence presence);
   DiscordRichUser user;
   DiscordPresence presence;

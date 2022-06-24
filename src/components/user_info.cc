@@ -17,6 +17,13 @@ bool UserInfo::canFocus() {
   return false;
 }
 void UserInfo::onFocus(bool focus) {}
+
+void UserInfo::render(float window_width, float window_height) {
+  auto w = 800 > window_width ? window_width - 45 : 800;
+  render(window_width - w - 20, 10, w,
+                           400 > window_height ? window_height - 45 : 400);
+}
+
 void UserInfo::render(float x, float y, float w, float h) {
   auto abs = AppState::gState->getPositionAbsolute(x, y, 0, 0);
   x = abs.x;

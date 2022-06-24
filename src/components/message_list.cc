@@ -3,6 +3,7 @@
 
 #include "../discord/message_state.h"
 #include "../gui_components.h"
+#include <algorithm>
 
 bool MessageList::canFocus() {
   return true;
@@ -42,7 +43,7 @@ void MessageList::render(float x, float y, float w, float h) {
       start = true;
     }
     msg->fetchImages();
-    msg->render(x, -(y + offset), width - 50, selected_i == i - 1 && hasFocus);
+    msg->render(x, -(y + offset), width - 50, selected_i == i - 1 && msg->hasFocus);
     offset += msg->height;
   }
 }
@@ -96,7 +97,8 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
     auto h = image->height;
     float scale = 1;
     if (image->width > w) {
-      scale = w / image->width;
+       float ww = w > 650.0 ? 650.0 : w;
+      scale = ww / image->width;
     }
     image->render(x + 50, -y, scale);
     y -= 15;
@@ -227,6 +229,12 @@ void MessageList::selectIndex(int32_t diff) {
   if (target == -2 || target == messages.size())
     return;
   selected_index = target;
+  if(selected_index < 0 || selected_index >= messages.size()) {
+    AppState::gState->setTextReceiver(&AppState::gState->components->chat_input);
+    return;
+  }
+  int32_t selected_i = messages.size() - selected_index - 1;
+  AppState::gState->setTextReceiver(messages[selected_i]);
 }
 
 RenderMessage::RenderMessage(MessageHolder* holder)
@@ -299,7 +307,8 @@ int RenderMessage::getHeight(float w, float ah) {
       continue;
     base += 15;
     if (at.width > w - 50) {
-      float val = (w - 50) / at.width;
+      float ww = (w-50) > 700.0 ? 700.0 : w;
+      float val =(ww - ((float)50)) / at.width;
       base += at.height * val;
     } else {
       base += at.height;
@@ -398,3 +407,38 @@ void EmbedRender::render(float x, float y, float w) {
     y -= f_box.computeHeight(w) * ah;
   }
 }
+  void RenderMessage::onEnter() {
+  };
+  void RenderMessage::onCodePoint(int32_t cp) {
+  };
+  void RenderMessage::onKey(GLFWwindow* window,
+             int key,
+             int scancode,
+             int action,
+             int mods) {
+    if(key >= 49 && key < 58) {
+      int num = key - 49;
+      std::vector<Image*> all;
+      for(auto* e : images) {
+        all.push_back(e);
+      }
+            for(auto* e : embeds) {
+              if(e->image)
+        all.push_back(e->image);
+      }
+      if(all.size() > num) {
+
+        AppState::gState->components->imageOverlay.initFrom(all[num]);
+        AppState::gState->components->setActivePopover(&AppState::gState->components->imageOverlay);
+      }
+    }
+  };
+  bool RenderMessage::canFocus() {
+    return true;
+  };
+  void RenderMessage::onFocus(bool focus) {
+    hasFocus = focus;
+  };
+  void RenderMessage::render(float x, float y, float w, float h) {
+
+  };

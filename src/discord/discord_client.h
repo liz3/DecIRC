@@ -11,6 +11,7 @@
 #include <string>
 #include <thread>
 #include "../components/search_list.h"
+
 #include "image_cache.h"
 #include "message_state.h"
 #include "structs.h"
@@ -23,6 +24,7 @@ enum DiscordConnectionState { Handshake, Handshaking, Connected, Disconnected };
 const std::string api_base = "https://discord.com/api/v9";
 class DiscordClient {
  public:
+  bool editMode = false;
   std::string m_token;
   ix::WebSocket m_web_socket;
   void init(GuiComponents* components);
@@ -54,6 +56,7 @@ class DiscordClient {
   std::string computeVcName();
   void renderUserInfo();
   void tryEdit();
+  void cancelEdit();
 
  private:
   DiscordGuildPayload* active_guild = nullptr;
@@ -62,8 +65,8 @@ class DiscordClient {
   bool ready = false;
   bool zInit = false;
   bool startedDmCall = false;
-  bool editMode = false;
   std::string editingMessageId = "";
+  std::string backupData = "";
   z_stream infstream;
   std::string messageBuffer;
   bool connecting = false;
