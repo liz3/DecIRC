@@ -5,6 +5,8 @@
 #include "../../third-party/png/lodepng.h"
 #include "../../third-party/libwebp/src/webp/decode.h"
 #include "../../third-party/libjpeg/jpeglib.h"
+#include "../../third-party/gifdec/gifdec.h"
+
 
 #include "../AppState.h"
 
@@ -17,7 +19,6 @@ class Image {
   bool valid = false;
 
   void init() {
-        std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
 
     valid = true;
     glGenTextures(1, &tex_id);
@@ -34,7 +35,6 @@ class Image {
                  GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
                     GL_UNSIGNED_BYTE, &data[0]);
-                std::cout << "init:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
 
   }
 
@@ -68,6 +68,8 @@ class Image {
       case Webp:
         init_from_mem_webp(entry->data);
         break;
+      case Gif:
+        init_from_mem_gif(entry->data);
       default:
         break;
     }
@@ -75,26 +77,60 @@ class Image {
   void init_from_mem_webp(std::vector<unsigned char>& content) {
     if (valid)
       return;
-    std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
     uint8_t* decoded = WebPDecodeRGBA(&content[0], content.size(), (int*)&width,
                                       (int*)&height);
     data.insert(data.begin(), decoded, decoded + (width * height * 4));
     delete decoded;
-    std::cout << "webp decode:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
     init();
   }
 
   void init_from_mem(std::vector<unsigned char>& content) {
     if (valid)
       return;
-        std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
     unsigned error = lodepng::decode(data, width, height, content);
-        std::cout << "png decode:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
+    init();
+  }
+
+  void init_from_mem_gif(std::vector<unsigned char>& content) {
+    gd_GIF *gif = gd_open_gif(content.data(), content.size());
+    width = gif->width;
+    height = gif->height;
+    uint8_t* pixel_buff = new uint8_t[width*height*3];
+    gd_get_frame(gif);
+    gd_render_frame(gif, pixel_buff);
+    uint8_t* color = pixel_buff;
+    data.resize(width*height*4);
+    uint8_t* ptr = data.data();
+
+   for (int i = 0; i < gif->height; i++) {
+      for (int j = 0; j < gif->width; j++) {
+          if (!gd_is_bgcolor(gif, color)) {
+                      *(ptr++) = color[0];
+                      *(ptr++) = color[1];
+                      *(ptr++) = color[2];
+                      *(ptr++) = 255;
+          }
+          else if (((i >> 2) + (j >> 2)) & 1) {
+               *(ptr++) = 0x7F;
+                *(ptr++) = 0x7F;
+                *(ptr++) = 0x7F;
+                *(ptr++) = 255;
+          }
+          else {
+                     *(ptr++) = 0;
+                *(ptr++) = 0;
+                *(ptr++) = 0;
+                *(ptr++) = 255;
+          }
+          color += 3;
+      }
+  }
+    gd_close_gif(gif);
+    delete[] pixel_buff;
     init();
   }
 
   void init_from_mem_jpeg(std::vector<unsigned char>& content) {
-      std::chrono::time_point<std::chrono::steady_clock> bench = std::chrono::steady_clock::now();
     int rc;
     jpeg_decompress_struct cinfo;
     jpeg_error_mgr jerr;
@@ -142,8 +178,6 @@ class Image {
 
     jpeg_destroy_decompress(&cinfo);
     delete[] pixel_buff;
-        std::cout << "jpeg decode:" << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - bench).count() << "\n";
-
     init();
   }
 

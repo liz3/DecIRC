@@ -3,7 +3,7 @@
 #include <ixwebsocket/IXHttpClient.h>
 #include <map>
 #include <vector>
-enum ImageType { Png, Webp, Jpg };
+enum ImageType { Png, Webp, Jpg, Gif };
 class Image;
 class ImageCacheEntry {
  public:
