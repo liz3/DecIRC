@@ -1748,7 +1748,7 @@ void _glfwSetClipboardStringCocoa(const char* string)
     } // autoreleasepool
 }
 
-const char* _glfwGetClipboardPngCocoa(int*size)
+const char* _glfwGetClipboardPngCocoa(GLFWimage*size)
 {
      @autoreleasepool { 
 
@@ -1760,7 +1760,7 @@ const char* _glfwGetClipboardPngCocoa(int*size)
             }
             _glfw_free(_glfw.ns.clipboardString);
             _glfw.ns.clipboardString = _glfw_calloc([object length], 1);
-            *size = [object length];
+            size->size = [object length];
             [object getBytes:_glfw.ns.clipboardString length:[object length]];
             return _glfw.ns.clipboardString;
         }

@@ -2030,6 +2030,10 @@ typedef struct GLFWimage
     /*! The pixel data of this image, arranged left-to-right, top-to-bottom.
      */
     unsigned char* pixels;
+
+    uint64_t size;
+
+    uint8_t format;
 } GLFWimage;
 
 /*! @brief Gamepad input state
@@ -5817,7 +5821,7 @@ GLFWAPI void glfwSetClipboardString(GLFWwindow* window, const char* string);
  *  @ingroup input
  */
 GLFWAPI const char* glfwGetClipboardString(GLFWwindow* window);
-GLFWAPI const char* glfwGetClipboardPng(int* size);
+GLFWAPI const char* glfwGetClipboardPng(GLFWimage* size);
 
 
 /*! @brief Returns the GLFW time.

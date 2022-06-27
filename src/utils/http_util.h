@@ -2,7 +2,9 @@
 #define DEC_HTTP_UTIL
 #include <string>
 #include <vector>
+#ifndef _WIN32
 #include <unistd.h>
+#endif
 
 
 struct HttpFileEntry {

@@ -2328,8 +2328,58 @@ void _glfwSetClipboardStringWin32(const char* string)
     SetClipboardData(CF_UNICODETEXT, object);
     CloseClipboard();
 }
-const char* _glfwGetClipboardPngWin32(int* size) {
-    return NULL;
+const char* _glfwGetClipboardPngWin32(GLFWimage* target) {
+    HBITMAP object;
+
+    
+    if (!OpenClipboard(_glfw.win32.helperWindowHandle))
+    {
+        _glfwInputErrorWin32(GLFW_PLATFORM_ERROR,
+                             "Win32: Failed to open clipboard");
+        return NULL;
+    }
+
+    object =(HBITMAP)GetClipboardData(CF_BITMAP);
+    if (!object)
+    {
+        _glfwInputErrorWin32(GLFW_FORMAT_UNAVAILABLE,
+                             "Win32: Failed to convert clipboard to bitmap");
+        CloseClipboard();
+        return NULL;
+    }
+
+    BITMAP bm;
+    GetObject(object, sizeof(BITMAP), &bm);
+
+    target->width = bm.bmWidth;
+    target->height = bm.bmHeight;
+    uint32_t size = target->width * target->height * (bm.bmBitsPixel / 8);
+    uint8_t* data = _glfw_calloc(size, 1);
+    GetBitmapBits(object, size, data);
+    for (size_t y = 0; y < target->height; y++)
+    {
+        for (size_t x = 0; x < target->width; x++)
+        {
+            auto index = ((y * target->width) + x) * 4;
+            uint8_t r = data[index + 2];
+            uint8_t g = data[index + 1];
+            uint8_t b = data[index];
+            uint8_t a = data[index + 3];
+            data[index] = r;
+            data[index + 1] = g;
+            data[index + 2] = b;
+            data[index + 3] = a;
+        }
+    }
+    target->size = size;
+    target->pixels = data;
+    _glfw_free(_glfw.win32.clipboardString);
+    _glfw.win32.clipboardString = data;
+
+    GlobalUnlock(object);
+    CloseClipboard();
+
+    return _glfw.win32.clipboardString;
 }
 const char* _glfwGetClipboardStringWin32(void)
 {

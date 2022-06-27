@@ -536,7 +536,7 @@ void _glfwSetClipboardStringNull(const char* string)
     _glfw_free(_glfw.null.clipboardString);
     _glfw.null.clipboardString = copy;
 }
-const char* _glfwGetClipboardPngNull(int* size)
+const char* _glfwGetClipboardPngNull(GLFWimage* size)
 {
     return _glfw.null.clipboardString;
 }

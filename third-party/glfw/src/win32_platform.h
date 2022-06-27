@@ -594,7 +594,7 @@ int _glfwCreateStandardCursorWin32(_GLFWcursor* cursor, int shape);
 void _glfwDestroyCursorWin32(_GLFWcursor* cursor);
 void _glfwSetCursorWin32(_GLFWwindow* window, _GLFWcursor* cursor);
 void _glfwSetClipboardStringWin32(const char* string);
-const char* _glfwGetClipboardPngWin32(int*);
+const char* _glfwGetClipboardPngWin32(GLFWimage*);
 const char* _glfwGetClipboardStringWin32(void);
 
 EGLenum _glfwGetEGLPlatformWin32(EGLint** attribs);

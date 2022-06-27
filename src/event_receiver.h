@@ -1,6 +1,8 @@
 #ifndef DEC_EVENT_RECEIVER
 #define DEC_EVENT_RECEIVER
 #include "../third-party/glfw/include/GLFW/glfw3.h"
+#include "../third-party/png/lodepng.h"
+
 #include "AppState.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
@@ -105,11 +107,18 @@ void key_callback(GLFWwindow* window,
     }else if (isPress && key == GLFW_KEY_V) {
       if(st->current_text_receiver) {
         {
-          int size;
+          GLFWimage size;
           const char* data = glfwGetClipboardPng(&size);
           if(data != nullptr) {
-            uint8_t* dPtr = (uint8_t*)data;
-            std::vector<uint8_t> vecData(dPtr, dPtr + size);
+#ifdef _WIN32
+            std::vector<uint8_t> in(data, data+size.size);
+            std::vector<uint8_t> vecData;
+            unsigned error = lodepng::encode(vecData, in, size.width, size.height);
+   
+#else
+             uint8_t* dPtr = (uint8_t*)data;
+              std::vector<uint8_t> vecData(dPtr, dPtr + size.size);
+#endif
             HttpFileEntry* e = new HttpFileEntry();
             *e = {"unknown.png", "image/png", "", vecData
   };

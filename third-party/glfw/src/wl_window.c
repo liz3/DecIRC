@@ -2573,7 +2573,7 @@ void _glfwSetClipboardStringWayland(const char* string)
                                  _glfw.wl.selectionSource,
                                  _glfw.wl.serial);
 }
-const char* _glfwGetClipboardPngWayland(int* size) {
+const char* _glfwGetClipboardPngWayland(GLFWimage* size) {
     return NULL;
 }
 const char* _glfwGetClipboardStringWayland(void)

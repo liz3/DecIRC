@@ -488,7 +488,7 @@ int _glfwCreateStandardCursorWayland(_GLFWcursor* cursor, int shape);
 void _glfwDestroyCursorWayland(_GLFWcursor* cursor);
 void _glfwSetCursorWayland(_GLFWwindow* window, _GLFWcursor* cursor);
 void _glfwSetClipboardStringWayland(const char* string);
-const char* _glfwGetClipboardPngWayland(int*);
+const char* _glfwGetClipboardPngWayland(GLFWimage*);
 const char* _glfwGetClipboardStringWayland(void);
 
 EGLenum _glfwGetEGLPlatformWayland(EGLint** attribs);

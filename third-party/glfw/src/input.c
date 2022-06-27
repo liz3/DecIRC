@@ -1390,7 +1390,7 @@ GLFWAPI void glfwSetClipboardString(GLFWwindow* handle, const char* string)
     _glfw.platform.setClipboardString(string);
 }
 
-GLFWAPI const char* glfwGetClipboardPng(int* size)
+GLFWAPI const char* glfwGetClipboardPng(GLFWimage* size)
 {
     _GLFW_REQUIRE_INIT_OR_RETURN(NULL);
     return _glfw.platform.getClipboardPng(size);

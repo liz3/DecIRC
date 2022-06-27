@@ -688,7 +688,7 @@ struct _GLFWplatform
     int (*getKeyScancode)(int);
     void (*setClipboardString)(const char*);
     const char* (*getClipboardString)(void);
-    const char* (*getClipboardPng)(int*);
+    const char* (*getClipboardPng)(GLFWimage*);
     GLFWbool (*initJoysticks)(void);
     void (*terminateJoysticks)(void);
     int (*pollJoystick)(_GLFWjoystick*,int);

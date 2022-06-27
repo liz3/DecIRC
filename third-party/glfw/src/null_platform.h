@@ -134,7 +134,7 @@ void _glfwDestroyCursorNull(_GLFWcursor* cursor);
 void _glfwSetCursorNull(_GLFWwindow* window, _GLFWcursor* cursor);
 void _glfwSetClipboardStringNull(const char* string);
 const char* _glfwGetClipboardStringNull(void);
-const char* _glfwGetClipboardPngNull(int*);
+const char* _glfwGetClipboardPngNull(GLFWimage*);
 const char* _glfwGetScancodeNameNull(int scancode);
 int _glfwGetKeyScancodeNull(int key);
 

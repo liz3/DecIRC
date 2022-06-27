@@ -219,6 +219,10 @@ void DiscordClient::sendChannelMessage(std::string content) {
       c++;
       delete file;
     }
+    for (auto& e : components->chat_input.images) {
+        delete e.second;
+    }
+    components->chat_input.images.clear();
     sendFiles.clear();
     request("/channels/" + active_channel + "/messages", "POST", true, &p,files,
      nullptr, [t](uint16_t http_code, bool success) {});
