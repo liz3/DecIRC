@@ -14,8 +14,14 @@ FontAtlas::FontAtlas(uint32_t fontSize, std::vector<std::string> m_fonts) {
       type = "bold";
     else if (i == 1)
         type = "emoji";
-    else
-      type = "normal";
+    else {
+      if(i != 0) {
+          type = "normal_" + std::to_string(n_count++);
+      } else {
+          type = "normal";
+      }
+    
+    }
     fonts[type] = init_font(m_fonts[i], i == 0, type);
   }
 }
@@ -60,6 +66,12 @@ RenderChar FontAtlas::render(int32_t cp,
         } else {
             order = { "bold", "normal", "emoji" };
         }
+             if(n_count > 0) {
+              for (int i = 0; i < n_count; ++i)
+              {
+                order.push_back("normal_" + std::to_string(i));
+              }
+            }
       for (auto& s : order) {
           if (!fonts.count(s))
               continue;
@@ -326,6 +338,12 @@ float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
             else {
                 order = { "bold", "normal", "emoji" };
             }
+            if(n_count > 0) {
+              for (int i = 0; i < n_count; ++i)
+              {
+                order.push_back("normal_" + std::to_string(i));
+              }
+            }
             for (auto& s : order) {
                 if (!fonts.count(s))
                     continue;
@@ -339,8 +357,10 @@ float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
                 }
             }
         }
-        if (!loaded)
-            return 0;
+        if (!loaded) {
+          std::cout << "load failed: " << cp << "\n";
+          return 0;
+        }
     }
     else {
         CharacterEntryMap& mp = characters[cp];

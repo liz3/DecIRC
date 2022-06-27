@@ -51,6 +51,7 @@ class FontAtlas {
 
  public:
   bool valid = false;
+  int n_count = 0;
 
   uint32_t font_size = 25;
   FT_UInt atlas_width, atlas_height, smallest_top, effective_atlas_height;

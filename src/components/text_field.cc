@@ -38,3 +38,10 @@ void TextField::onKey(GLFWwindow* window,
     }
   }
 }
+void TextField::addText(std::string newContent) {
+  text.append(newContent);
+    
+}
+std::string TextField::getText() {
+  return text.getUtf8Value();
+}

@@ -56,6 +56,9 @@ bool canFocus() override;
              int action,
              int mods) override;
 
+     void addText(std::string text) override;
+   std::string getText() override;
+
 };
 
 class MessageList : public Component {

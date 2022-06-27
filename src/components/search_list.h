@@ -31,6 +31,9 @@ class SearchList : public TextReceiver {
              int scancode,
              int action,
              int mods) override;
+     void addText(std::string text) override;
+
+     std::string getText() override;
   TextWithState text;
   SearchItem* current_selected = nullptr;
   TextWithState title;

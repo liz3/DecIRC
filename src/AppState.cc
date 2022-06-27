@@ -45,6 +45,7 @@ void AppState::start() {
                             "./assets/fonts/FiraCode-Regular.ttf",
                             "./assets/fonts/NotoColorEmoji.ttf",
                             "./assets/fonts/FiraCode-Bold.ttf",
+                            "./assets/fonts/NotoSansMath-Regular.ttf"
                         });
   atlas.valid = true;
   float xscale, yscale;
@@ -59,6 +60,7 @@ void AppState::start() {
   std::string tkn_str(discord_token);
   client = create_discord_client(tkn_str);
   client->init(components);
+  components->chat_input.client = client;
   runGuiLoop();
 }
 Vec2f AppState::getPositionAbsolute(float x, float y, float w, float h) {
@@ -70,6 +72,7 @@ void AppState::setTextReceiver(TextReceiver* recv) {
     current_text_receiver->onFocus(false);
   }
   current_text_receiver = recv;
+  if(current_text_receiver)
   current_text_receiver->onFocus(true);
 }
 void AppState::emptyEvent() {

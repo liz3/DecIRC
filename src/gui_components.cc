@@ -6,14 +6,11 @@ void GuiComponents::init() {
   chat_input.box.background = vec4f(0.3, 0.3, 0.3, 1.0);
   chat_input.box.allowGrow = true;
   chat_input.list = &message_list;
-
   status_text.setData("Ready");
-
   auto* t = this;
   chat_input.enterCb = [t](std::string data) {
     t->state->client->sendChannelMessage(data);
   };
-
   header_comp.background = vec4f(0.2, 0.2, 0.2, 1);
   header_comp.style = "bold";
   dm_list.title.setData("Direct Messages");
@@ -45,15 +42,14 @@ void GuiComponents::render() {
   auto window_width = state->window_width;
   auto window_height = state->window_height;
   message_list.setWidth(window_width * 0.64);
-  message_list.setAvailableHeight(window_height - 65 - 200);
+  message_list.setAvailableHeight(window_height - 65 - 140);
   message_list.render(window_width - (window_width * 0.65), 80, 0, 0);
-  chat_input.render(window_width - (window_width * 0.65), window_height - 120,
+  chat_input.render(window_width - (window_width * 0.65), window_height - 85,
                     window_width * 0.64, 70);
   if (header_text.data.size()) {
-    //	header_text.setData("this is a longer test to see if this renders
-    // correctly");
+
     auto abs = state->getPositionAbsolute(window_width - (window_width * 0.65),
-                                          -30, window_width * 0.64, 65);
+                          -30, window_width * 0.64, 65);
     header_comp.render(abs.x, abs.y, window_width * 0.64, 65);
   }
   if (root_list_display == 1 || root_list_display == 0)

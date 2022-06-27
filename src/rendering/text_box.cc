@@ -9,8 +9,8 @@ TextBox::TextBox(TextWithState& text) : text(text) {
   atlas = &AppState::gState->atlas;
   m_shader = AppState::gState->opengl_state.text_shader;
 }
-int TextBox::computeHeight(float w) {
-  int size = 0;
+int TextBox::computeHeight(float w, int preclude) {
+  int size = preclude;
   int skip = 0;
   float currentAdvance = 0;
   auto preproc = preprocess();
@@ -33,9 +33,12 @@ int TextBox::computeHeight(float w) {
       }
     }
   }
-  if (currentAdvance > 0)
-    size++;
+ 
   return size;
+}
+float TextBox::computeHeightAbsolute(float w, int preclude) {
+  int count = computeHeight(w, preclude);
+  return  count * atlas->effective_atlas_height;
 }
 std::vector<RichChar>& TextBox::preprocess() {
   if (last_data_point != -1 && last_data_point == text.last_point)
@@ -90,6 +93,9 @@ std::vector<RichChar>& TextBox::preprocess() {
   return rich_cache;
 }
 void TextBox::render(float x, float y, float w, float h) {
+
+  int amount = h / atlas->effective_atlas_height;
+  h = amount * atlas->effective_atlas_height;
   std::vector<RenderChar> entries;
   float offset = 0;
   float offsetY = 0;
@@ -116,7 +122,6 @@ void TextBox::render(float x, float y, float w, float h) {
     int needed = std::floor(offset / w);
     addedLines += needed;
     offset = 0;
-
     float res = (atlas->effective_atlas_height * addedLines) -
                 (h - atlas->effective_atlas_height);
     if (growDown) {
@@ -133,7 +138,7 @@ void TextBox::render(float x, float y, float w, float h) {
     }
   }
   if (background.w > 0) {
-    Box::render(x, y + atlas->effective_atlas_height + 10, w, -(h + 10),
+    Box::render(x, y + atlas->effective_atlas_height + 10, w, -(h + 20),
                 background);
   }
   m_shader->shader.use();

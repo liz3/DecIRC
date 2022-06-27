@@ -16,6 +16,7 @@
 #include "message_state.h"
 #include "structs.h"
 #include "voice_client.h"
+#include "../utils/http_util.h"
 
 class GuiComponents;
 using HttpResultCallback =
@@ -57,6 +58,7 @@ class DiscordClient {
   void renderUserInfo();
   void tryEdit();
   void cancelEdit();
+  std::vector<HttpFileEntry*> sendFiles;
 
  private:
   DiscordGuildPayload* active_guild = nullptr;
@@ -81,6 +83,13 @@ class DiscordClient {
                std::string method,
                bool hasBody,
                DiscordMessage* body,
+               DiscordMessage* out,
+               const HttpResultCallback& callback);
+    void request(std::string path,
+               std::string method,
+               bool hasBody,
+               DiscordMessage* body,
+               std::vector<HttpFileEntry>& files,
                DiscordMessage* out,
                const HttpResultCallback& callback);
   GuiComponents* components;

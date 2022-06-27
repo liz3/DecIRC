@@ -112,7 +112,14 @@ void SearchList::recompute() {
     current_selected = filtered[0];
   }
 }
-
+void SearchList::addText(std::string newContent) {
+  text.append(newContent);
+  recompute();
+    
+}
+std::string SearchList::getText() {
+  return text.getUtf8Value();
+}
 void SearchList::setCallback(const OnSelectionCallback& cb) {
   select_cb = cb;
 }

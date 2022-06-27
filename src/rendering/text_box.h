@@ -21,7 +21,8 @@ class TextBox {
   TextWithState& text;
   TextBox(TextWithState& text);
   void render(float x, float y, float w, float h);
-  int computeHeight(float w);
+  int computeHeight(float w, int preclude = 0);
+  float computeHeightAbsolute(float w, int preclude =0 );
   bool renderCursor = false;
   bool allowGrow = false;
   bool growDown = false;

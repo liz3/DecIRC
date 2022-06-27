@@ -12,5 +12,7 @@ class TextReceiver : public Component {
                      int scancode,
                      int action,
                      int mods) = 0;
+  virtual void addText(std::string text) = 0;
+  virtual std::string getText() = 0;
 };
 #endif

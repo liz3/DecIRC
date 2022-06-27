@@ -205,8 +205,29 @@ void DiscordClient::sendChannelMessage(std::string content) {
   p.content = content;
   auto* t = this;
   t->components->chat_input.text.setData("");
-  request("/channels/" + active_channel + "/messages", "POST", true, &p,
+  if(sendFiles.size()) {
+    std::vector<HttpFileEntry> files;
+    int c = 0;
+    for(auto* file : sendFiles) {
+      HttpFileEntry e = *file;
+      e.id = std::to_string(c);
+      files.push_back(e);
+      DiscordMessageAttachment at;
+      at.id = std::to_string(c);
+      at.filename = e.name;
+      p.attachments[std::to_string(c)] = at;
+      c++;
+      delete file;
+    }
+    sendFiles.clear();
+    request("/channels/" + active_channel + "/messages", "POST", true, &p,files,
+     nullptr, [t](uint16_t http_code, bool success) {});
+    sendFiles.clear();
+
+  } else {
+      request("/channels/" + active_channel + "/messages", "POST", true, &p,
           nullptr, [t](uint16_t http_code, bool success) {});
+  }
 }
 void DiscordClient::itemSelected(std::string type, const SearchItem* item) {
   if (type == "guild") {
@@ -687,6 +708,46 @@ void DiscordClient::request(std::string path,
   if (hasBody) {
     json b = body->getJson();
     req->body = b.dump();
+  }
+  httpClient.performRequest(
+      req, [out, callback](const ix::HttpResponsePtr& response) {
+        auto errorCode = response->errorCode;
+        auto responseCode = response->statusCode;
+        bool success = errorCode == ix::HttpErrorCode::Ok;
+        if (success && responseCode == 200) {
+          auto payload = response->body;
+          if (payload.length() && out != nullptr) {
+            json parsed = json::parse(payload);
+            out->fromJson(parsed);
+          }
+        }
+        callback(responseCode, success);
+      });
+}
+void DiscordClient::request(std::string path,
+                            std::string method,
+                            bool hasBody,
+                            DiscordMessage* body,
+                            std::vector<HttpFileEntry>& files,
+                            DiscordMessage* out,
+                            const HttpResultCallback& callback) {
+  std::cout << "http req multipart: " << method << ":" << path << "\n";
+  ix::WebSocketHttpHeaders headers;
+     json b = body->getJson();
+  std::string jsonPayload = b.dump();
+  FormData formData = FormData::generate(files, jsonPayload);
+  headers["Authorization"] = m_token;
+  if (method != "GET")
+    headers["Content-Type"] = "multipart/form-data; boundary=----" + formData.boundary;
+  headers["User-Agent"] =
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+      "(KHTML, like Gecko) discord/0.0.266 Chrome/91.0.4472.164 "
+      "Electron/13.6.6 Safari/537.3";
+  std::string url = api_base + path;
+  auto req = httpClient.createRequest(url, method);
+  req->extraHeaders = headers;
+  if (hasBody) {
+    req->body = formData.data;
   }
   httpClient.performRequest(
       req, [out, callback](const ix::HttpResponsePtr& response) {

@@ -671,6 +671,8 @@ class DiscordMessageAttachment : public DiscordMessage {
 
   json getJson() override {
     json j;
+    j["id"] = id;
+    j["filename"] = filename;
     return j;
   };
   void fromJson(json j) override {
@@ -841,7 +843,20 @@ class DiscordMessagePayload : public DiscordMessage {
       j["nonce"] = nonce;
     if (content.length())
       j["content"] = content;
-    j["tts"] = false;
+   
+    if(attachments.size()) {
+      j["channel_id"] = channel_id;
+      j["type"] = 0;
+      j["sticker_ids"] = json::array();
+      json atj = json::array();
+      for(auto& e : attachments) {
+        auto sec = e.second;
+        atj.push_back(sec.getJson());
+      }
+      j["attachments"] = atj;
+    } else {
+       j["tts"] = false;
+    }
     return j;
   };
   void fromJson(json j) override {

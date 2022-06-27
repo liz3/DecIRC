@@ -96,6 +96,32 @@ void key_callback(GLFWwindow* window,
       st->components->root_list_display = 2;
       st->setTextReceiver(&st->components->guilds_list);
       return;
+    } else if (isPress && key == GLFW_KEY_C) {
+      if(st->current_text_receiver) {
+        std::string content = st->current_text_receiver->getText();
+        glfwSetClipboardString(window, content.c_str());
+        return;
+      } 
+    }else if (isPress && key == GLFW_KEY_V) {
+      if(st->current_text_receiver) {
+        {
+          int size;
+          const char* data = glfwGetClipboardPng(&size);
+          if(data != nullptr) {
+            uint8_t* dPtr = (uint8_t*)data;
+            std::vector<uint8_t> vecData(dPtr, dPtr + size);
+            HttpFileEntry* e = new HttpFileEntry();
+            *e = {"unknown.png", "image/png", "", vecData
+  };
+            st->client->sendFiles.push_back(e);
+            return;
+          }
+        }
+        const char* content = glfwGetClipboardString(window);
+        std::string str(content);
+        st->current_text_receiver->addText(str);  
+        return;
+      } 
     }
   }
   if (st->current_text_receiver) {

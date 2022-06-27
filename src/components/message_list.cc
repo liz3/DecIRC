@@ -72,26 +72,29 @@ void RenderMessage::fetchImages() {
 }
 void RenderMessage::render(float x, float y, float w, bool selected) {
   if (selected) {
-    Box::render(x, y + (atlas_height), w, -height, vec4f(0.1, 0.1, 0.1, 1));
+    Box::render(x, y + (atlas_height), w, (-height), vec4f(0.1, 0.1, 0.1, 1));
   }
   if (m_holder->message.type == 0) {
     title_box.render(x + 50, y, 0, 0);
-    y -= atlas_height + 15;
+    y -= atlas_height;
   }
   box.render(x + 50, y, w, 0);
-  y -= content_height;
+  y -= (content_height);
     if(m_holder->message.edited_timestamp.length()) {
+        y -= atlas_height;
+
     TextWithState edited;
     TextBox edit_box(edited);
     edited.setData("edited");
     edit_box.color = vec4f(0.4,0.4,0.4, 1);
     edit_box.scale = 0.6;
     edit_box.render(x+50, y, 0,0);
+    y -= (atlas_height * 0.6);
   }
   for (auto* em : embeds) {
-    y -= 5;
+    y -= 15;
     em->render(x + 70, y, w - 20);
-    y -= (em->height + 10);
+    y -= (em->height);
   }
   for (auto* image : images) {
     auto h = image->height;
@@ -100,11 +103,12 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
        float ww = w > 650.0 ? 650.0 : w;
       scale = ww / image->width;
     }
+      y -= 15;
     image->render(x + 50, -y, scale);
-    y -= 15;
+
     y -= h * scale;
   }
-  y -= 25;
+  y -= (20 + atlas_height);
   auto baseOffset = x + 50;
   for (auto& reaction : m_holder->message.reactions) {
       if (!reaction.second.emote_id.length())
@@ -286,15 +290,17 @@ RenderMessage::~RenderMessage() {
     image->remove();
     delete image;
   }
+  if(AppState::gState->current_text_receiver == this)
+    AppState::gState->setTextReceiver(nullptr);
 }
 int RenderMessage::getHeight(float w, float ah) {
   if (m_holder->message.type != 0) {
     return 0;
   }
-  auto base = box.computeHeight(w - 50) * ah;
+  auto base = (box.computeHeight(w - 50))* ah;
   content_height = base;
   if(m_holder->message.edited_timestamp.length())
-    base+= ah * 0.6;
+    base += (ah * 0.6) + ah;
 
   for (auto* em : embeds) {
     base += em->getHeight(w - 70, ah) + 15;
@@ -315,7 +321,7 @@ int RenderMessage::getHeight(float w, float ah) {
     }
   }
   if (m_holder->message.reactions.size())
-    base += ah + 25;
+    base += ah + 20;
   return base;
 }
 
@@ -442,3 +448,10 @@ void EmbedRender::render(float x, float y, float w) {
   void RenderMessage::render(float x, float y, float w, float h) {
 
   };
+
+void RenderMessage::addText(std::string text) {
+  // noop
+}
+std::string RenderMessage::getText() {
+  return m_holder->message.content;
+}
