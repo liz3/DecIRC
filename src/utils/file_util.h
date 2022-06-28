@@ -3,6 +3,7 @@
 
 #include <fstream>
 #include <sstream>
+namespace fs = std::filesystem;
 
 class FileUtils {
  public:
@@ -18,9 +19,20 @@ class FileUtils {
     std::ofstream stream(path);
     if (!stream.is_open())
       return false;
-    stream << content;
+    stream.write(content.c_str(), content.length());
     stream.close();
     return true;
+  }
+    static fs::path* getHomeFolder() {
+#ifdef _WIN32
+    const char* home = getenv("USERPROFILE");
+#else
+    const char* home = getenv("HOME");
+#endif
+    if(home)
+      return new fs::path(home);
+    return nullptr;
+
   }
 };
 #endif

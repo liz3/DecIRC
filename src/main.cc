@@ -1,6 +1,7 @@
 #include "AppState.h"
 #include <filesystem>
 #include <iostream>
+
 int main() {
 #ifdef _WIN32
     SetConsoleOutputCP(CP_UTF8);

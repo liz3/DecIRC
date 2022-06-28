@@ -326,6 +326,25 @@ void DiscordClient::renderUserInfo() {
             });
   }
 }
+void DiscordClient::loadEncryptedMessage(DiscordMessagePayload message, std::string content){
+    message.content = content;
+    message.attachments.clear();
+    if (active_channel == message.channel_id) {
+        message_state.add_message(message, *active_channel_ptr);
+      } else if (private_channels.count(message.channel_id)) {
+        DiscordChannelPayload& ch = private_channels[message.channel_id];
+        message_state.add_message(message, ch);
+      }
+      if (active_channel == message.channel_id) {
+          auto* t = this;
+          std::string id = message.id;
+          components->runLater(new std::function([t, id]() {
+              t->components->message_list.addContent(
+                  t->message_state.message_index[id]);
+              }));
+      }
+}
+
 void DiscordClient::onMessage(DiscordBaseMessage& msg) {
   if (state == Handshaking && msg.opCode == DiscordOpCode::AuthResponse) {
     DiscordInitResponseMessage initResponse;
@@ -384,6 +403,41 @@ void DiscordClient::onMessage(DiscordBaseMessage& msg) {
       } else if (evType == "MESSAGE_CREATE") {
         DiscordMessagePayload message;
         message.fromJson(msg.data);
+        if(message.content == "dec1") {
+          if(message.author.id != user.id) {
+                      std::string key = cryptoInstance.getPublicKey(message.channel_id);
+          sendChannelMessage("dec2\n" + key);
+          }
+
+          return;
+        } else if (message.content.find("dec2\n") == 0) {
+          if(message.author.id != user.id)  {
+                     std::string key = message.content.substr(5);
+          cryptoInstance.addRemoteKey(message.channel_id, key); 
+          }
+
+          return;
+        } else if (message.content.find("dec0") == 0) {
+          if(message.author.id == user.id) {
+            message.attachments.clear();
+            message.content = lastMessageContent;
+            lastMessageContent = "";
+          } else {
+            auto begin = message.attachments.begin();
+            auto* t = this;
+            image_cache.fetchImage(begin->second.url, this, [t, message](bool success, ImageCacheEntry* image) {
+                 if (!success || image == nullptr) {
+                  std::cout << "decrypt fetch fail\n";
+                    return;
+                  }
+                  std::string content = t->cryptoInstance.decrypt(message.channel_id, image->data);
+                    t->loadEncryptedMessage(message, content);
+                  
+            });
+            return;
+          }
+
+        }
         if (active_channel == message.channel_id) {
           message_state.add_message(message, *active_channel_ptr);
         } else if (private_channels.count(message.channel_id)) {
@@ -798,6 +852,21 @@ void DiscordClient::fetchMore() {
         delete list;
         AppState::gState->emptyEvent();
       });
+}
+void DiscordClient::encryptSend(std::string content) {
+  lastMessageContent = content;
+  EncryptResult result;
+  std::vector<uint8_t> out = cryptoInstance.encrypt(active_channel, content, &result);
+  if(result == NeedPublicKey) {
+    sendChannelMessage("dec1");
+    return;
+  }
+  HttpFileEntry* e = new HttpFileEntry();
+  e->name = "lol.png";
+  e->contentType = "image/png";
+  e->data = out;
+  sendFiles.push_back(e);
+  sendChannelMessage("dec0");
 }
 void DiscordClient::tryDelete() {
   auto mlist = components->message_list;

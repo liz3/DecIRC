@@ -17,6 +17,8 @@
 #include "structs.h"
 #include "voice_client.h"
 #include "../utils/http_util.h"
+#include "../utils/crypto.h"
+
 
 class GuiComponents;
 using HttpResultCallback =
@@ -49,7 +51,9 @@ class DiscordClient {
   DiscordChannelPayload* active_channel_ptr;
   std::string getChannelName(DiscordChannelPayload& channel);
   void sendChannelMessage(std::string content);
+  void encryptSend(std::string content);
   ImageCache image_cache;
+
   void fetchMore();
   void tryDelete();
   bool fetching = false;
@@ -61,6 +65,7 @@ class DiscordClient {
   std::vector<HttpFileEntry*> sendFiles;
 
  private:
+  Crypto cryptoInstance;
   DiscordGuildPayload* active_guild = nullptr;
   DiscordChannelPayload* next_active = nullptr;
   ix::HttpClient httpClient;
@@ -75,10 +80,12 @@ class DiscordClient {
   std::thread* hb_thread = nullptr;
   DiscordConnectionState state = Handshake;
   uint32_t hb_interval;
+  std::string lastMessageContent = "";
   void onWsReady();
   void onWsMessage(const ix::WebSocketMessagePtr& msg);
   void onMessage(DiscordBaseMessage& msg);
   void onReadyPayload(DiscordReadyPayload p);
+  void loadEncryptedMessage(DiscordMessagePayload msg, std::string data);
   void request(std::string path,
                std::string method,
                bool hasBody,

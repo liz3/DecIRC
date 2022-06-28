@@ -61,6 +61,8 @@ void MessageState::load_channel(std::vector<DiscordMessagePayload>& messages,
   ChannelState& channel_state = state[channel.id];
 
   for (auto msg : messages) {
+    if(msg.content.find("dec") == 0 && (msg.content[3] == '0' || msg.content[3] == '1' || msg.content[3] == '2' || msg.content[3] == '3'))
+      continue;
     MessageHolder* holder = new MessageHolder(msg);
     channel_state.messages.insert(channel_state.messages.begin(), holder);
     message_index[msg.id] = holder;
@@ -77,6 +79,8 @@ std::vector<MessageHolder*> MessageState::prepend_messages(
   }
   ChannelState& channel_state = state[channel.id];
   for (auto msg : messages) {
+        if(msg.content.find("dec") == 0 && (msg.content[3] == '0' || msg.content[3] == '1' || msg.content[3] == '2' || msg.content[3] == '3'))
+      continue;
     MessageHolder* holder = new MessageHolder(msg);
     channel_state.messages.insert(channel_state.messages.begin(), holder);
     ret.push_back(holder);

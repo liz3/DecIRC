@@ -9,7 +9,8 @@ void GuiComponents::init() {
   status_text.setData("Ready");
   auto* t = this;
   chat_input.enterCb = [t](std::string data) {
-    t->state->client->sendChannelMessage(data);
+
+    t->state->client->encryptSend(data);
   };
   header_comp.background = vec4f(0.2, 0.2, 0.2, 1);
   header_comp.style = "bold";
