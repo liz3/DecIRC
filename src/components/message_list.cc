@@ -4,6 +4,7 @@
 #include "../discord/message_state.h"
 #include "../gui_components.h"
 #include <algorithm>
+#include "../utils/web_util.h"
 
 bool MessageList::canFocus() {
   return true;
@@ -92,7 +93,7 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
     y -= (atlas_height * 0.6);
   }
   for (auto* em : embeds) {
-    y -= 15;
+    y -= 15 + atlas_height;
     em->render(x + 70, y, w - 20);
     y -= (em->height);
   }
@@ -259,7 +260,38 @@ RenderMessage::RenderMessage(MessageHolder* holder)
   for (auto& em : holder->message.embeds) {
     embeds.push_back(new EmbedRender(em));
   }
-
+  std::string cpy = holder->message.content;
+  while (true) {
+      int res = -1; 
+    auto index = cpy.find("http://", 0);
+    if (index != std::string::npos) {
+        res = index;
+    }
+    else {
+        index = cpy.find("https://", 0);
+        if (index != std::string::npos) {
+            res = index;
+        }
+    }
+    if (res == -1)
+        break;
+    std::string start = cpy.substr(res);
+    bool f = false;
+    for (char c : " \n \t") {
+        auto i = start.find(c, 0);
+        if (i != std::string::npos) {
+            f = true;
+            std::string link = start.substr(0, i);
+            links.push_back(link);
+            cpy = start.substr(i);
+            break;
+        }
+    }
+    if (!f) {
+        links.push_back(start);
+        break;
+    }
+  }
 }
 void RenderMessage::fetchImage(std::string url) {
   auto* t = this;
@@ -326,14 +358,14 @@ int RenderMessage::getHeight(float w, float ah) {
 }
 
 float EmbedRender::getHeight(float w, float atlas_height) {
-  float base = 0;
+  float base = 15 + atlas_height;
   auto h = t_box.computeHeight(w) * atlas_height;
   auto d = d_box.computeHeight(w) * atlas_height;
   auto f = f_box.computeHeight(w) * atlas_height;
   if (h)
-    base += h + 5;
+    base += h + atlas_height;
   if (d)
-    base += d + 5;
+    base += d + atlas_height;
   if (f)
     base += f + atlas_height;
 
@@ -390,12 +422,12 @@ void EmbedRender::render(float x, float y, float w) {
   if (title.data.size()) {
     t_box.render(x, y, w, 0);
     y -= t_box.computeHeight(w) * ah;
-    y -= 5;
+    y -= ah;
   }
   if (description.data.size()) {
     d_box.render(x, y, w, 0);
     y -= d_box.computeHeight(w) * ah;
-    y -= 5;
+    y -= ah;
   }
   if (image) {
     auto h = image->height;
@@ -422,8 +454,20 @@ void EmbedRender::render(float x, float y, float w) {
              int scancode,
              int action,
              int mods) {
+
+      if (action != GLFW_PRESS)
+          return;
+      bool d_pressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
     if(key >= 49 && key < 58) {
       int num = key - 49;
+      if (d_pressed) {
+          if (links.size() > num) {
+              std::string lnk = links[num];
+              dec_open_in_browser(lnk);
+          }
+          return;
+      }
+
       std::vector<Image*> all;
       for(auto* e : images) {
         all.push_back(e);

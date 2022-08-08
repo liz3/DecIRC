@@ -61,6 +61,8 @@ void MessageState::load_channel(std::vector<DiscordMessagePayload>& messages,
   ChannelState& channel_state = state[channel.id];
 
   for (auto msg : messages) {
+      if (message_index.count(msg.id))
+          continue;
     MessageHolder* holder = new MessageHolder(msg);
     channel_state.messages.insert(channel_state.messages.begin(), holder);
     message_index[msg.id] = holder;

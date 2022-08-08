@@ -33,6 +33,7 @@ class RenderMessage : public TextReceiver {
   bool hasFocus = false;
   RenderMessage(MessageHolder* holder);
   std::vector<Image*> images;
+  std::vector<std::string > links;
   std::vector<EmbedRender*> embeds;
   ~RenderMessage();
   int getHeight(float w, float atlas_height);

@@ -389,6 +389,23 @@ void DiscordClient::onMessage(DiscordBaseMessage& msg) {
         } else if (private_channels.count(message.channel_id)) {
           DiscordChannelPayload& ch = private_channels[message.channel_id];
           message_state.add_message(message, ch);
+          uint32_t index = 0;
+          DiscordChannelPayload* chPtr = &ch;
+          SearchItem item;
+          bool f = false;
+          for (auto& e : dm_items) {
+              if (e.user_data == chPtr) {
+                  item = e;
+                  f = true;
+                  break;
+              }
+            
+              index++;
+          }
+          if (f) {
+              dm_items.erase(dm_items.begin() + index);
+              dm_items.insert(dm_items.begin(), item);
+            }
         }
         if (active_channel == message.channel_id) {
             auto* t = this;

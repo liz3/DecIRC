@@ -21,12 +21,14 @@ class ChatInput : public TextField {
           if(images.size()) {
             auto it = images.begin();
             std::advance(it, images.size()-1);
+            if (it == images.end())
+                return;
             it->second->remove();
             delete it->second;
             auto e = std::find(client->sendFiles.begin(), client->sendFiles.end(), it->first);
             client->sendFiles.erase(e);
-            images.erase(it->first);
             delete it->first;
+            images.erase(it->first);
             return;
           }
         }

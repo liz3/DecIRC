@@ -2347,10 +2347,8 @@ const char* _glfwGetClipboardPngWin32(GLFWimage* target) {
         CloseClipboard();
         return NULL;
     }
-
     BITMAP bm;
     GetObject(object, sizeof(BITMAP), &bm);
-
     target->width = bm.bmWidth;
     target->height = bm.bmHeight;
     uint32_t size = target->width * target->height * (bm.bmBitsPixel / 8);
@@ -2375,7 +2373,6 @@ const char* _glfwGetClipboardPngWin32(GLFWimage* target) {
     target->pixels = data;
     _glfw_free(_glfw.win32.clipboardString);
     _glfw.win32.clipboardString = data;
-
     GlobalUnlock(object);
     CloseClipboard();
 
