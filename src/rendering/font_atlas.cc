@@ -37,7 +37,6 @@ void FontAtlas::genTexture() {
     glDeleteTextures(1, &texture_id);
   glActiveTexture(GL_TEXTURE0);
   glGenTextures(1, &texture_id);
-  std::cout << texture_id << "\n";
   glBindTexture(GL_TEXTURE_2D, texture_id);
   wasGenerated = true;
 }
