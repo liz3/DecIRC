@@ -1,6 +1,5 @@
 
 #include "AppState.h"
-#include <sodium.h>
 #include "gui_components.h"
 #include "event_receiver.h"
 
@@ -11,10 +10,6 @@ AppState::AppState() : opengl_state(nullptr) {
   gState = this;
 }
 void AppState::start() {
-  if (sodium_init() < 0) {
-    // TODO handle errror
-    return;
-  }
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
