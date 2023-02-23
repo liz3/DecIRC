@@ -2,7 +2,7 @@
 #define DEC_TEXT_FIELD
 #include "../rendering/text.h"
 #include "text_receiver.h"
-
+#include <functional>
 #include "../rendering/text_box.h"
 using OnEnterCallback = std::function<void(std::string content)>;
 class TextField : public TextReceiver {
