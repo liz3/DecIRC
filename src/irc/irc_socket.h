@@ -2,22 +2,12 @@
 #define DEC_IRC_SOCKET_H
 
 #include <string>
-#include <netdb.h>
 #include <fcntl.h>
-#include <netinet/tcp.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
 #include "../../third-party/IXWebSocket/ixwebsocket/IXSocketFactory.h"
 #include "../../third-party/IXWebSocket/ixwebsocket/IXSocket.h"
 
 struct addrinfo;
-#ifdef _WIN32
-typedef SOCKET socket_t;
-#else
-typedef int socket_t;
-#endif
+
 
 class IrcSocket {
  public:
