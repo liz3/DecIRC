@@ -82,6 +82,7 @@ class IrcClient {
   ConnectionState getState() { return state; }
   std::map<std::string, IrcChannel> joinedChannels;
   std::map<std::string, WhoIsEntry> userInfos;
+  std::string lastWhoIs;
 
  private:
   OnIrcMessage ircMessageListener;

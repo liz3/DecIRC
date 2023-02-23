@@ -122,9 +122,14 @@ class IrcMessageMsg : public IrcMessage {
   }
   void build(std::vector<std::string>& into) override {
     into.push_back(channel);
-    if (action)
-      into.push_back(":ACTION " + content);
-    else
+    if (action) {
+      std::string msg = ":";
+      msg += (char)1;
+      msg += "ACTION ";
+      msg += content;
+      msg += (char)1;
+      into.push_back(msg);
+    } else
       into.push_back(":" + content);
   }
   bool fromParts(const std::string& input) override {
@@ -138,10 +143,15 @@ class IrcMessageMsg : public IrcMessage {
     channel = reader.readUntil(' ');
     std::cout << "chan name: " << channel << "\n";
     reader.skipUntil(':', true);
-    std::string rawContent = reader.readUntilEnd();
-    if (rawContent.find("ACTION ") == 0) {
-      content = rawContent.substr(7);
+    if (reader.isNext((char)1)) {
+      reader.skip(1);
       action = true;
+    }
+    std::string rawContent =
+        action ? reader.readUntil((char)1) : reader.readUntilEnd();
+
+    if (action && rawContent.find("ACTION ") == 0) {
+      content = rawContent.substr(7);
     } else {
       content = rawContent;
     }

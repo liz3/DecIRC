@@ -86,7 +86,8 @@ void UserInfo::render(float x, float y, float w, float h) {
 }
 void UserInfo::initFrom(WhoIsEntry entry) {
   this->entry = entry;
-  username_text.setData(entry.nick + " (" + entry.username + ":" + entry.realname + ")");
+  username_text.setData(entry.nick + " (" + entry.username + ":" +
+                        entry.realname + ")");
   server_text.setData(entry.server_name + " (" + entry.server_info + ")");
 
   std::string modes = "";

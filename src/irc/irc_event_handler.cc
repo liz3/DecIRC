@@ -21,7 +21,6 @@ void IrcEventHandler::init(GuiComponents* components) {
   // infstream.zfree = Z_NULL;
   // infstream.opaque = Z_NULL;
   messageBuffer = "";
-  
 }
 void IrcEventHandler::addNetwork(IrcClient* client) {
   active_networks.push_back(client);
@@ -51,12 +50,12 @@ void IrcEventHandler::disconnect() {
   populateChannels(active_network);
 }
 void IrcEventHandler::closeAll() {
-  for(auto* n : active_networks) {
-    if(n->getState() == IrcClient::ConnectionState::Connected) {
-        IrcMessageQuit quitMsg;
-        n->write(quitMsg);
-        n->disconnect();
-        n->reset();
+  for (auto* n : active_networks) {
+    if (n->getState() == IrcClient::ConnectionState::Connected) {
+      IrcMessageQuit quitMsg;
+      n->write(quitMsg);
+      n->disconnect();
+      n->reset();
     }
   }
 }
@@ -87,8 +86,13 @@ void IrcEventHandler::whoIsHandler(const IncomingMessage& msg,
   reader.skip(1);
   auto& whoIsList = client->userInfos;
   if (!whoIsList.count(target)) {
-    WhoIsEntry entry;
-    whoIsList[target] = entry;
+    if (c == 318 && client->lastWhoIs.length() &&
+        whoIsList.count(client->lastWhoIs)) {
+      target = client->lastWhoIs;
+    } else {
+      WhoIsEntry entry;
+      whoIsList[target] = entry;
+    }
   }
 
   WhoIsEntry& e = whoIsList[target];
@@ -99,6 +103,7 @@ void IrcEventHandler::whoIsHandler(const IncomingMessage& msg,
     e.host = reader.readUntil(' ');
     reader.skipUntil(':', true);
     e.realname = reader.readUntilEnd();
+    client->lastWhoIs = e.nick;
   }
   if (c == 312) {
     e.server_name = reader.readUntil(' ');
@@ -129,6 +134,7 @@ void IrcEventHandler::whoIsHandler(const IncomingMessage& msg,
     }
   }
   if (c == 318) {
+    client->lastWhoIs = "";
     components->userInfo.initFrom(e);
     components->runLater(new std::function(
         [this]() { components->setActivePopover(&components->userInfo); }));
@@ -428,6 +434,23 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
           auto* holder = message_state.add_message(msg, ch);
           if (active_channel_ptr == &ch)
             components->message_list.addContent(holder);
+          active_network->write(msg);
+          reader.skip(1);
+        }
+      }
+      if (command == "ME") {
+        while (reader.rem() > 0) {
+          IrcMessageMsg msg("PRIVMSG");
+          msg.content = reader.readUntil('\n');
+          msg.channel = active_channel_ptr->name;
+          msg.source.nick = active_network->nick;
+          msg.source.onlyHost = false;
+          msg.action = true;
+          IrcChannel& ch = active_network->joinedChannels[msg.channel];
+          auto& channelMessages = ch.messages;
+          channelMessages.push_back(msg);
+          auto* holder = message_state.add_message(msg, ch);
+          components->message_list.addContent(holder);
           active_network->write(msg);
           reader.skip(1);
         }

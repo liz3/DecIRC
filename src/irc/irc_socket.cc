@@ -10,11 +10,11 @@ IrcSocket::IrcSocket(std::string host,
 }
 IrcSocket::IrcSocket() {}
 void IrcSocket::close() {
-    if(sock) {
-        sock->close();
-        sock = nullptr;
-    }
-    connected = false;
+  if (sock) {
+    sock->close();
+    sock = nullptr;
+  }
+  connected = false;
 }
 bool IrcSocket::isConnected() {
   return connected;

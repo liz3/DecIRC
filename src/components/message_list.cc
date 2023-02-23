@@ -244,11 +244,17 @@ RenderMessage::RenderMessage(MessageHolder* holder)
     : m_holder(holder), box(text), title_box(title) {
   box.allowGrow = true;
   box.growDown = true;
+  if (holder->message.action)
+    box.style = "bold";
   box.color = vec4f(0.7, 0.7, 0.7, 1);
-  box.discordMode = true;
   box.msg_ref = &holder->message;
-  title.setData(holder->message.source.getName());
-  text.setData(holder->message.content);
+  if (!holder->message.action)
+    title.setData(holder->message.source.getName());
+  if (holder->message.action)
+    text.setData("*" + holder->message.source.getName() + " " +
+                 holder->message.content);
+  else
+    text.setData(holder->message.content);
   if (holder->message.type == 1) {
     box.color = vec4f(0.8, 0.3, 0.3, 1);
   }

@@ -39,7 +39,15 @@ void SearchList::render(float x, float y, float w, float h) {
     Box::render(x, y - 4, w, 2, vec4f(0.6, 0.6, 0.6, 1));
   }
   offset += atlas->effective_atlas_height + 15;
+  size_t render_amount = (h - offset) / (atlas->effective_atlas_height + 10);
+  size_t skip = 0;
+  if (selected_index > render_amount)
+    skip = selected_index - render_amount;
   for (auto* entry : filtered) {
+    if (skip > 0) {
+      skip--;
+      continue;
+    }
     if (offset > h)
       break;
     TextWithState entry_text(entry->name);
