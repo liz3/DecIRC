@@ -13,27 +13,37 @@ void GuiComponents::init() {
   };
   header_comp.background = vec4f(0.2, 0.2, 0.2, 1);
   header_comp.style = "bold";
-  dm_list.title.setData("Direct Messages");
-  guilds_list.title.setData("Servers");
+  dm_list.title.setData("Channels");
+  network_list.title.setData("Networks");
   channel_list.title.setData("Channels");
   dm_list.setCallback([t](const SearchItem* item) {
     t->state->client->itemSelected("dm", item);
   });
-  guilds_list.setCallback([t](const SearchItem* item) {
-    t->state->client->itemSelected("guild", item);
+  user_list.getList().setCallback([t](const SearchItem* item) {
+    size_t off = 0;
+    std::string name = item->name;
+    for(const char& e : name) {
+      if((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z'))
+        break;
+      off++;
+    }
+    std::string sub = name.substr(off);
+    t->state->client->query(sub);
+  });
+  network_list.setCallback([t](const SearchItem* item) {
+    t->state->client->itemSelected("network", item);
   });
   channel_list.setCallback([t](const SearchItem* item) {
     t->state->client->itemSelected("channel", item);
   });
 }
 void GuiComponents::render() {
-
-  if(locked) {
+  if (locked) {
     std::unique_lock lk(mtx);
-     for (auto& t : tasks) {
-    (*t)();
-    delete t;
-    } 
+    for (auto& t : tasks) {
+      (*t)();
+      delete t;
+    }
     tasks.clear();
     lk.unlock();
     locked = false;
@@ -41,23 +51,19 @@ void GuiComponents::render() {
 
   auto window_width = state->window_width;
   auto window_height = state->window_height;
-  message_list.setWidth(window_width * 0.64);
+  message_list.setWidth(window_width * 0.70);
   message_list.setAvailableHeight(window_height - 65 - 140);
-  message_list.render(window_width - (window_width * 0.65), 80, 0, 0);
-  chat_input.render(window_width - (window_width * 0.65), window_height - 85,
-                    window_width * 0.64, 70);
+  message_list.render(window_width - (window_width * 0.7), 80, 0, 0);
+  chat_input.render(window_width - (window_width * 0.7), window_height - 85,
+                    window_width * 0.7, 70);
   if (header_text.data.size()) {
-
-    auto abs = state->getPositionAbsolute(window_width - (window_width * 0.65),
-                          -30, window_width * 0.64, 65);
-    header_comp.render(abs.x, abs.y, window_width * 0.64, 65);
+    auto abs = state->getPositionAbsolute(window_width - (window_width * 0.7),
+                                          -30, window_width * 0.7, 65);
+    header_comp.render(abs.x, abs.y, window_width * 0.7, 65);
   }
-  if (root_list_display == 1 || root_list_display == 0)
-    dm_list.render(50, 50, 400, 400);
-  else if (root_list_display == 2 || root_list_display == 3)
-    guilds_list.render(50, 50, 400, 400);
-  if (root_list_display == 3)
-    channel_list.render(50, 400, 400, 400);
+
+  network_list.render(50, 50, 400, 400);
+  channel_list.render(50, 400, 400, 400);
 
   if (status_text.data.size()) {
     auto abs = state->getPositionAbsolute(50, window_height - 150, 400, 65);

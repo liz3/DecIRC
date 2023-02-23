@@ -1,2 +1,2 @@
-SortIncludes: false
-Style: Chromium
+SortIncludes: 'false'
+BasedOnStyle: Chromium

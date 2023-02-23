@@ -29,9 +29,13 @@ void SearchList::render(float x, float y, float w, float h) {
   }
 
   float offset = 0;
-  if (focused) {
+  {
     TextBox box(text);
+    if (!focused)
+      box.color = vec4fs(0.5);
     box.render(x, y, w, atlas->effective_atlas_height);
+  }
+  if (focused) {
     Box::render(x, y - 4, w, 2, vec4f(0.6, 0.6, 0.6, 1));
   }
   offset += atlas->effective_atlas_height + 15;
@@ -40,6 +44,7 @@ void SearchList::render(float x, float y, float w, float h) {
       break;
     TextWithState entry_text(entry->name);
     TextBox box(entry_text);
+    box.color = entry->color;
     box.render(x, y - offset, w, atlas->effective_atlas_height);
     if (current_selected == entry && focused) {
       Box::render(x, y - (offset + 4), w, 4, vec4f(0.2, 0.2, 0.8, 0.8));
@@ -115,7 +120,6 @@ void SearchList::recompute() {
 void SearchList::addText(std::string newContent) {
   text.append(newContent);
   recompute();
-    
 }
 std::string SearchList::getText() {
   return text.getUtf8Value();

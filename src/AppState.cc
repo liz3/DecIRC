@@ -41,12 +41,10 @@ void AppState::start() {
   glfwSetWindowFocusCallback(window, window_focus_callback);
   opengl_state = OpenGLState(window);
 
-  atlas = FontAtlas(30, {
-                            "./assets/fonts/FiraCode-Regular.ttf",
-                            "./assets/fonts/NotoColorEmoji.ttf",
-                            "./assets/fonts/FiraCode-Bold.ttf",
-                            "./assets/fonts/NotoSansMath-Regular.ttf"
-                        });
+  atlas = FontAtlas(30, {"./assets/fonts/FiraCode-Regular.ttf",
+                         "./assets/fonts/NotoColorEmoji.ttf",
+                         "./assets/fonts/FiraCode-Bold.ttf",
+                         "./assets/fonts/NotoSansMath-Regular.ttf"});
   atlas.valid = true;
   float xscale, yscale;
   glfwGetWindowContentScale(window, &xscale, &yscale);
@@ -56,12 +54,11 @@ void AppState::start() {
   auto c = GuiComponents(this);
   c.init();
   components = &c;
-  const char* discord_token = std::getenv("DISCORD_TOKEN");
-  std::string tkn_str(discord_token);
-  client = create_discord_client(tkn_str);
+  client = create_irc_event_handler();
   client->init(components);
   components->chat_input.client = client;
   runGuiLoop();
+  client->closeAll();
 }
 Vec2f AppState::getPositionAbsolute(float x, float y, float w, float h) {
   return vec2f(x - ((window_width / 2)), (-y) + ((window_height / 2) - h));
@@ -72,8 +69,8 @@ void AppState::setTextReceiver(TextReceiver* recv) {
     current_text_receiver->onFocus(false);
   }
   current_text_receiver = recv;
-  if(current_text_receiver)
-  current_text_receiver->onFocus(true);
+  if (current_text_receiver)
+    current_text_receiver->onFocus(true);
 }
 void AppState::emptyEvent() {
   glfwPostEmptyEvent();
@@ -81,7 +78,7 @@ void AppState::emptyEvent() {
 void AppState::runGuiLoop() {
   setTextReceiver(&components->chat_input);
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0.15, 0.15, 0.15, 1);
+    glClearColor(0.15, 0.15, 0.25, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     opengl_state.setResolution(window_width, window_height);
@@ -91,4 +88,5 @@ void AppState::runGuiLoop() {
     glfwSwapBuffers(window);
     glfwWaitEvents();
   }
+  glfwTerminate();
 }

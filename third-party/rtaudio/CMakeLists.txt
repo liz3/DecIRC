@@ -107,18 +107,7 @@ set(API_LIST)
 # Tweak API-specific configuration.
 
 # Jack
-if (RTAUDIO_API_JACK AND jack_FOUND)
-  set(NEED_PTHREAD ON)
-  list(APPEND PKGCONFIG_REQUIRES "jack")
-  list(APPEND API_DEFS "-D__UNIX_JACK__")
-  list(APPEND API_LIST "jack")
-  if(jack_FOUND)
-    list(APPEND LINKLIBS ${jack_LIBRARIES})
-    list(APPEND INCDIRS ${jack_INCLUDEDIR})
-  else()
-    list(APPEND LINKLIBS ${JACK_LIB})
-  endif()
-endif()
+
 
 # ALSA
 if (RTAUDIO_API_ALSA)

@@ -7,17 +7,15 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
 
-
-    #ifdef _WIN32
-         float xscale, yscale;
-         glfwGetWindowContentScale(window, &xscale, &yscale);
-         AppState::gState->window_width = width * xscale;
-         AppState::gState->window_height = height * yscale;
-   #else
+#ifdef _WIN32
+  float xscale, yscale;
+  glfwGetWindowContentScale(window, &xscale, &yscale);
+  AppState::gState->window_width = width * xscale;
+  AppState::gState->window_height = height * yscale;
+#else
   AppState::gState->window_width = width;
   AppState::gState->window_height = height;
-   #endif
-       
+#endif
 };
 void window_focus_callback(GLFWwindow* window, int focused){
 
@@ -46,7 +44,7 @@ void key_callback(GLFWwindow* window,
     if (st->components->active_popover) {
       st->components->setActivePopover(nullptr);
       return;
-    } else if(st->client->editMode) {
+    } else if (st->client->editMode) {
       st->client->cancelEdit();
       return;
     }
@@ -58,13 +56,12 @@ void key_callback(GLFWwindow* window,
   }
   if (ctrl_pressed) {
     if (x_pressed) {
-
-      if (isPress && key == GLFW_KEY_D) {
-        st->client->tryDelete();
-      }
-      if (isPress && key == GLFW_KEY_A) {
-        st->client->startDmCall();
-      }
+      // if (isPress && key == GLFW_KEY_D) {
+      //   st->client->tryDelete();
+      // }
+      // if (isPress && key == GLFW_KEY_A) {
+      //   st->client->startDmCall();
+      // }
       if (isPress && key == GLFW_KEY_E) {
         st->client->tryEdit();
       }
@@ -82,7 +79,7 @@ void key_callback(GLFWwindow* window,
       st->components->message_list.scrollEnd();
       return;
     } else if (isPress && key == GLFW_KEY_U) {
-      st->client->renderUserInfo();
+      st->client->renderUserList();
       return;
     } else if (isPress && key == GLFW_KEY_P) {
       st->components->message_list.changeScroll(-25);
@@ -92,45 +89,45 @@ void key_callback(GLFWwindow* window,
       return;
     } else if (isPress && key == GLFW_KEY_D) {
       st->components->root_list_display = 1;
-      st->setTextReceiver(&st->components->dm_list);
+      st->setTextReceiver(&st->components->channel_list);
       return;
     } else if (isPress && key == GLFW_KEY_G) {
       st->components->root_list_display = 2;
-      st->setTextReceiver(&st->components->guilds_list);
+      st->setTextReceiver(&st->components->network_list);
       return;
     } else if (isPress && key == GLFW_KEY_C) {
-      if(st->current_text_receiver) {
+      if (st->current_text_receiver) {
         std::string content = st->current_text_receiver->getText();
         glfwSetClipboardString(window, content.c_str());
         return;
-      } 
-    }else if (isPress && key == GLFW_KEY_V) {
-      if(st->current_text_receiver) {
+      }
+    } else if (isPress && key == GLFW_KEY_V) {
+      if (st->current_text_receiver) {
         {
           GLFWimage size;
           const char* data = glfwGetClipboardPng(&size);
-          if(data != nullptr) {
+          if (data != nullptr) {
 #ifdef _WIN32
-            std::vector<uint8_t> in(data, data+size.size);
+            std::vector<uint8_t> in(data, data + size.size);
             std::vector<uint8_t> vecData;
-            unsigned error = lodepng::encode(vecData, in, size.width, size.height);
-   
+            unsigned error =
+                lodepng::encode(vecData, in, size.width, size.height);
+
 #else
-             uint8_t* dPtr = (uint8_t*)data;
-              std::vector<uint8_t> vecData(dPtr, dPtr + size.size);
+            uint8_t* dPtr = (uint8_t*)data;
+            std::vector<uint8_t> vecData(dPtr, dPtr + size.size);
 #endif
             HttpFileEntry* e = new HttpFileEntry();
-            *e = {"unknown.png", "image/png", "", vecData
-  };
+            *e = {"unknown.png", "image/png", "", vecData};
             st->client->sendFiles.push_back(e);
             return;
           }
         }
         const char* content = glfwGetClipboardString(window);
         std::string str(content);
-        st->current_text_receiver->addText(str);  
+        st->current_text_receiver->addText(str);
         return;
-      } 
+      }
     }
   }
   if (st->current_text_receiver) {

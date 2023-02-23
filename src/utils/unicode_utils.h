@@ -25,7 +25,7 @@ class UnicodeUtils {
         u = u.substr(2);
         continue;
       }
-      if (u[0] == 0xed && (u[1] & 0xa0) == 0xa0)
+      if ((uint8_t)u[0] == 0xed && (u[1] & 0xa0) == 0xa0)
         break;
       if (l < 3)
         break;

@@ -33,7 +33,7 @@ set(IXWEBSOCKET_INSTALL OFF)
 set(MBEDTLS_VERSION_GREATER_THAN_3 ON)
 
 
-add_executable(dec src/audio/opus/opus_wrapper.cc src/rendering/opengl_state.cc src/rendering/glad.c src/rendering/font_atlas.cc src/gui_components.cc src/AppState.cc src/rendering/text_box.cc src/rendering/la.cc src/rendering/text.cc src/rendering/shader.cc src/components/search_list.cc src/main.cc src/components/user_info.cc src/components/text_field.cc src/components/message_list.cc src/discord/discord_client.cc src/discord/image_cache.cc src/discord/message_state.cc src/discord/voice_client.cc third-party/png/lodepng.cpp third-party/gifdec/gifdec.c src/components/image_overlay.cc)
+add_executable(dec src/irc/irc_socket.cc src/irc/irc_client.cc src/irc/irc_pool.cc src/audio/opus/opus_wrapper.cc src/rendering/opengl_state.cc src/rendering/glad.c src/rendering/font_atlas.cc src/gui_components.cc src/AppState.cc src/rendering/text_box.cc src/rendering/la.cc src/rendering/text.cc src/rendering/shader.cc src/components/search_list.cc src/main.cc src/components/user_info.cc src/components/user_list.cc src/components/text_field.cc src/components/message_list.cc src/irc/irc_event_handler.cc src/irc/image_cache.cc src/irc/message_state.cc third-party/png/lodepng.cpp third-party/gifdec/gifdec.c src/components/image_overlay.cc)
 
 target_include_directories(dec PRIVATE third-party/IXWebSocket/ixwebsocket)
 target_include_directories(dec PRIVATE third-party/json)

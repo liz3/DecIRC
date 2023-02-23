@@ -57,20 +57,20 @@ std::vector<RichChar>& TextBox::preprocess() {
       if (discord_entry.find("@") == 0) {
         std::string id = discord_entry.substr(1);
         if (msg_ref) {
-          if (msg_ref->mentions.count(id)) {
-            DiscordUser& u = msg_ref->mentions[id];
-            auto vec = UnicodeUtils::utf8_to_codepoint("@" + u.username);
+          // if (msg_ref->mentions.count(id)) {
+          //   DiscordUser& u = msg_ref->mentions[id];
+          //   auto vec = UnicodeUtils::utf8_to_codepoint("@" + u.username);
 
-            for (auto cpp : vec) {
-              RichChar ch;
-              ch.cp = cpp;
-              ch.style = "bold";
-              ch.type = 0;
-              rich_cache.push_back(ch);
-            }
-            i += 1 + discord_entry.size();
-            continue;
-          }
+          //   for (auto cpp : vec) {
+          //     RichChar ch;
+          //     ch.cp = cpp;
+          //     ch.style = "bold";
+          //     ch.type = 0;
+          //     rich_cache.push_back(ch);
+          //   }
+          //   i += 1 + discord_entry.size();
+          //   continue;
+          // }
         }
       } else if (discord_entry.find(":") == 0 || discord_entry.find("a") == 0) {
         std::string id =

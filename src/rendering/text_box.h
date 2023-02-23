@@ -3,7 +3,7 @@
 #include "font_atlas.h"
 #include "shader.h"
 #include "text.h"
-#include "../discord/structs.h"
+#include "../irc/irc_messages.hpp"
 
 struct RichChar {
   uint8_t type;
@@ -31,7 +31,7 @@ class TextBox {
   std::string style = "normal";
   float scale = 1;
   bool discordMode = false;
-  DiscordMessagePayload* msg_ref = nullptr;
+  IrcMessageMsg* msg_ref = nullptr;
   std::vector<RichChar> rich_cache;
   uint32_t last_data_point = -1;
   std::vector<RichChar>& preprocess();

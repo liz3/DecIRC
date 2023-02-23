@@ -13,6 +13,7 @@ struct SearchItem {
   std::vector<uint8_t> icon;
   uint32_t icon_width;
   uint32_t icon_height;
+  Vec4f color = vec4fs(1);
   void* user_data = nullptr;
 };
 using OnSelectionCallback = std::function<void(const SearchItem*)>;
@@ -31,9 +32,9 @@ class SearchList : public TextReceiver {
              int scancode,
              int action,
              int mods) override;
-     void addText(std::string text) override;
+  void addText(std::string text) override;
 
-     std::string getText() override;
+  std::string getText() override;
   TextWithState text;
   SearchItem* current_selected = nullptr;
   TextWithState title;

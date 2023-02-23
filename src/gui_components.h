@@ -7,6 +7,7 @@ class AppState;
 #include "./components/search_list.h"
 #include "./components/text_field.h"
 #include "./components/user_info.h"
+#include "./components/user_list.h"
 #include "./components/image_overlay.h"
 
 
@@ -23,7 +24,7 @@ class GuiComponents {
   ChatInput chat_input;
   SearchList dm_list;
   SearchList channel_list;
-  SearchList guilds_list;
+  SearchList network_list;
   TextBox header_comp;
   TextWithState header_text;
   TextBox status_comp;
@@ -36,6 +37,7 @@ class GuiComponents {
 
   UserInfo userInfo;
   ImageOverlay imageOverlay;
+  UserList user_list;
   Image testImage;
   GuiComponents(AppState* _state);
 
@@ -56,7 +58,22 @@ class GuiComponents {
     tasks.push_back(t);
     AppState::gState->emptyEvent();
   }
-  void setActivePopover(Popover* c) { active_popover = c; }
+  void setActivePopover(Popover* c) { 
+    if(!c) {
+      Component* comp = dynamic_cast<Component*>(active_popover);
+      if(comp && comp->canFocus())
+        comp->onFocus(false);
+      state->setTextReceiver(&chat_input);
+       }
+    
+    active_popover = c;
+    if(!c)
+      return;
+    Component* comp = dynamic_cast<Component*>(c);
+    if(comp && comp->canFocus()) {
+      comp->onFocus(true);
+     }
+   }
 };
 
 #endif

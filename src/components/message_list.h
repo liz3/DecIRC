@@ -12,14 +12,13 @@ class MessageHolder;
 
 class EmbedRender {
  public:
-  DiscordMessageEmbed embed;
   Image* image = nullptr;
   TextWithState title, description, footer;
   TextBox t_box, d_box, f_box;
   float height = 0.0;
   float ah;
   float getHeight(float w, float atlas_height);
-  EmbedRender(DiscordMessageEmbed embed);
+  EmbedRender();
   ~EmbedRender();
   void render(float x, float y, float w);
 };
@@ -33,7 +32,7 @@ class RenderMessage : public TextReceiver {
   bool hasFocus = false;
   RenderMessage(MessageHolder* holder);
   std::vector<Image*> images;
-  std::vector<std::string > links;
+  std::vector<std::string> links;
   std::vector<EmbedRender*> embeds;
   ~RenderMessage();
   int getHeight(float w, float atlas_height);
@@ -46,10 +45,10 @@ class RenderMessage : public TextReceiver {
   void fetchImages();
   void disposeImages();
   bool initiatedLoading = false;
-bool canFocus() override;
+  bool canFocus() override;
   void onFocus(bool focus) override;
   void render(float x, float y, float w, float h) override;
-    void onEnter() override;
+  void onEnter() override;
   void onCodePoint(int32_t cp) override;
   void onKey(GLFWwindow* window,
              int key,
@@ -57,9 +56,8 @@ bool canFocus() override;
              int action,
              int mods) override;
 
-     void addText(std::string text) override;
-   std::string getText() override;
-
+  void addText(std::string text) override;
+  std::string getText() override;
 };
 
 class MessageList : public Component {

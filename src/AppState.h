@@ -12,7 +12,7 @@ class GLFWwindow;
 #include "../third-party/freetype2/include/ft2build.h"
 #include "rendering/opengl_state.h"
 #include "components/text_receiver.h"
-#include "discord/discord_client.h"
+#include "irc/irc_event_handler.h"
 #include "rendering/font_atlas.h"
 #ifndef __APPLE__
 #include <algorithm>
@@ -22,7 +22,7 @@ class AppState {
  public:
   GLFWwindow* window;
   FontAtlas atlas;
-  DiscordClient* client;
+  IrcEventHandler* client;
   GuiComponents* components;
   void runGuiLoop();
   uint32_t window_height = 720;

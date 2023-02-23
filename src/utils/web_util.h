@@ -11,7 +11,6 @@ ShellExecute(0, 0, url.c_str(), 0, 0 , SW_SHOW );
 #endif
 #ifdef __APPLE__
 std::string cmd = "open " + url;
-system(cmd);
 #endif
 #ifdef __LINUX__
 std::string cmd = "xdg-open " + url;
