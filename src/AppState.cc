@@ -2,6 +2,7 @@
 #include "AppState.h"
 #include "gui_components.h"
 #include "event_receiver.h"
+#include "./utils/notifications.h"
 
 #include "../third-party/glfw/include/GLFW/glfw3.h"
 
@@ -10,6 +11,7 @@ AppState::AppState() : opengl_state(nullptr) {
   gState = this;
 }
 void AppState::start() {
+  Notifications::init();
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
