@@ -1,13 +1,15 @@
 #include "opengl_state.h"
 #include "../../third-party/glfw/include/GLFW/glfw3.h"
 
-OpenGLState::OpenGLState(GLFWwindow* window, std::filesystem::path cwd) : cwd(cwd), m_window(window) {
+OpenGLState::OpenGLState(GLFWwindow* window, std::filesystem::path cwd)
+    : cwd(cwd), m_window(window) {
   if (window == nullptr)
     return;
   if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
     std::cout << "Failed to initialize GLAD" << std::endl;
     return;
   }
+  init_irc_colors();
 
   // OpenGL state
   // ------------
@@ -18,11 +20,11 @@ OpenGLState::OpenGLState(GLFWwindow* window, std::filesystem::path cwd) : cwd(cw
   image_shader = new ShaderInstance(
       "simple_image.vert", "simple_image.frag", 16,
       {{2, sizeof(SimpleEntry), GL_FLOAT, (void*)offsetof(SimpleEntry, pos)},
-       {2, sizeof(SimpleEntry), GL_FLOAT, (void*)offsetof(SimpleEntry, size)}}, cwd);
+       {2, sizeof(SimpleEntry), GL_FLOAT, (void*)offsetof(SimpleEntry, size)}},
+      cwd);
 
   text_shader = new ShaderInstance(
-      "text.vert", "text.frag",
-      sizeof(RenderChar) * 400 * 1000,
+      "text.vert", "text.frag", sizeof(RenderChar) * 400 * 1000,
       {{2, sizeof(RenderChar), GL_FLOAT, (void*)offsetof(RenderChar, pos)},
        {2, sizeof(RenderChar), GL_FLOAT, (void*)offsetof(RenderChar, size)},
        {2, sizeof(RenderChar), GL_FLOAT, (void*)offsetof(RenderChar, uv_pos)},
@@ -30,13 +32,15 @@ OpenGLState::OpenGLState(GLFWwindow* window, std::filesystem::path cwd) : cwd(cw
        {4, sizeof(RenderChar), GL_FLOAT, (void*)offsetof(RenderChar, fg_color)},
        {4, sizeof(RenderChar), GL_FLOAT, (void*)offsetof(RenderChar, bg_color)},
        {1, sizeof(RenderChar), GL_FLOAT,
-        (void*)offsetof(RenderChar, hasColor)}}, cwd);
+        (void*)offsetof(RenderChar, hasColor)}},
+      cwd);
 
   box_shader = new ShaderInstance(
       "box.vert", "box.frag", sizeof(ColorEntry) * 16,
       {{2, sizeof(ColorEntry), GL_FLOAT, (void*)offsetof(ColorEntry, pos)},
        {2, sizeof(ColorEntry), GL_FLOAT, (void*)offsetof(ColorEntry, size)},
-       {4, sizeof(ColorEntry), GL_FLOAT, (void*)offsetof(ColorEntry, color)}}, cwd);
+       {4, sizeof(ColorEntry), GL_FLOAT, (void*)offsetof(ColorEntry, color)}},
+      cwd);
 
   glBindBuffer(GL_ARRAY_BUFFER, 0);
   glBindVertexArray(0);
@@ -54,7 +58,8 @@ void OpenGLState::setResolution(uint32_t w, uint32_t h) {
 ShaderInstance::ShaderInstance(std::string vert_path,
                                std::string frag_path,
                                uint32_t size,
-                               std::vector<ShaderVar> entries, std::filesystem::path cwd) {
+                               std::vector<ShaderVar> entries,
+                               std::filesystem::path cwd) {
   glGenVertexArrays(1, &vao);
   glGenBuffers(1, &vbo);
   glBindVertexArray(vao);
@@ -73,8 +78,10 @@ ShaderInstance::ShaderInstance(std::string vert_path,
   glBindVertexArray(0);
   std::filesystem::path vert_final_path = cwd / "assets" / vert_path;
   std::filesystem::path frag_final_path = cwd / "assets" / frag_path;
-  std::string vert_content = FileUtils::file_to_string(vert_final_path.generic_string());
-  std::string frag_content = FileUtils::file_to_string(frag_final_path.generic_string());
+  std::string vert_content =
+      FileUtils::file_to_string(vert_final_path.generic_string());
+  std::string frag_content =
+      FileUtils::file_to_string(frag_final_path.generic_string());
   shader = Shader(vert_content, frag_content, {});
 }
 void ShaderInstance::bindVertexArray() {

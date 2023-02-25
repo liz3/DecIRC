@@ -244,6 +244,7 @@ RenderMessage::RenderMessage(MessageHolder* holder)
     : m_holder(holder), box(text), title_box(title) {
   box.allowGrow = true;
   box.growDown = true;
+  box.richRender = true;
   if (holder->message.action)
     box.style = "bold";
   box.color = vec4f(0.7, 0.7, 0.7, 1);

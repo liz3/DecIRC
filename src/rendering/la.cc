@@ -1,4 +1,5 @@
 #include "la.h"
+#include <iostream>
 
 Vec2f vec2f(float x, float y) {
 #ifdef _WIN32
@@ -109,4 +110,8 @@ Vec4f vec4f_div(Vec4f a, Vec4f b) {
 
 float lerpf(float a, float b, float t) {
   return a + (b - a) * t;
+}
+void vec4f_print(Vec4f v) {
+  std::cout << "R: " << v.x << " G: " << v.y << " B: " << v.z << " A:" << v.w
+            << "\n";
 }

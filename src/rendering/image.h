@@ -7,7 +7,6 @@
 #include "../../third-party/libjpeg/jpeglib.h"
 #include "../../third-party/gifdec/gifdec.h"
 
-
 #include "../AppState.h"
 
 class Image {
@@ -19,7 +18,6 @@ class Image {
   bool valid = false;
 
   void init() {
-
     valid = true;
     glGenTextures(1, &tex_id);
     glActiveTexture(GL_TEXTURE0);
@@ -35,7 +33,6 @@ class Image {
                  GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
                     GL_UNSIGNED_BYTE, &data[0]);
-
   }
 
   void remove() {
@@ -92,39 +89,37 @@ class Image {
   }
 
   void init_from_mem_gif(std::vector<unsigned char>& content) {
-    gd_GIF *gif = gd_open_gif(content.data(), content.size());
+    gd_GIF* gif = gd_open_gif(content.data(), content.size());
     width = gif->width;
     height = gif->height;
-    uint8_t* pixel_buff = new uint8_t[width*height*3];
+    uint8_t* pixel_buff = new uint8_t[width * height * 3];
     gd_get_frame(gif);
     gd_render_frame(gif, pixel_buff);
     uint8_t* color = pixel_buff;
-    data.resize(width*height*4);
+    data.resize(width * height * 4);
     uint8_t* ptr = data.data();
 
-   for (int i = 0; i < gif->height; i++) {
+    for (int i = 0; i < gif->height; i++) {
       for (int j = 0; j < gif->width; j++) {
-          if (!gd_is_bgcolor(gif, color)) {
-                      *(ptr++) = color[0];
-                      *(ptr++) = color[1];
-                      *(ptr++) = color[2];
-                      *(ptr++) = 255;
-          }
-          else if (((i >> 2) + (j >> 2)) & 1) {
-               *(ptr++) = 0x7F;
-                *(ptr++) = 0x7F;
-                *(ptr++) = 0x7F;
-                *(ptr++) = 255;
-          }
-          else {
-                     *(ptr++) = 0;
-                *(ptr++) = 0;
-                *(ptr++) = 0;
-                *(ptr++) = 255;
-          }
-          color += 3;
+        if (!gd_is_bgcolor(gif, color)) {
+          *(ptr++) = color[0];
+          *(ptr++) = color[1];
+          *(ptr++) = color[2];
+          *(ptr++) = 255;
+        } else if (((i >> 2) + (j >> 2)) & 1) {
+          *(ptr++) = 0x7F;
+          *(ptr++) = 0x7F;
+          *(ptr++) = 0x7F;
+          *(ptr++) = 255;
+        } else {
+          *(ptr++) = 0;
+          *(ptr++) = 0;
+          *(ptr++) = 0;
+          *(ptr++) = 255;
+        }
+        color += 3;
       }
-  }
+    }
     gd_close_gif(gif);
     delete[] pixel_buff;
     init();
@@ -172,7 +167,6 @@ class Image {
         *(ptr++) = *(src++);
         *(ptr++) = *(src++);
         *(ptr++) = 255;
-
       }
     }
 
@@ -183,19 +177,14 @@ class Image {
 
   void render(int x, int y, float scale) {
     m_shader = AppState::gState->opengl_state.image_shader;
-    SimpleEntry entry = 
-        {vec2f(x, y), vec2f(width * scale, height * scale)};
+    SimpleEntry entry = {vec2f(x, y), vec2f(width * scale, height * scale)};
     m_shader->shader.use();
     m_shader->bindVertexArray();
     m_shader->bindBuffer();
     glBindTexture(GL_TEXTURE_2D, tex_id);
-    glBufferSubData(GL_ARRAY_BUFFER, 0,
-                    sizeof(SimpleEntry),
-                    &entry);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(SimpleEntry), &entry);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6,
-                          1);
-
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, 1);
   }
 };
 #endif

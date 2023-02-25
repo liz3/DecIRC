@@ -5,6 +5,8 @@
 #include <vector>
 #include "../utils/file_util.h"
 
+void init_irc_colors();
+
 #include "shader.h"
 class GLFWwindow;
 struct SimpleEntry {

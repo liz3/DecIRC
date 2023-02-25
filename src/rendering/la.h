@@ -35,6 +35,7 @@ Vec4f vec4f_add(Vec4f a, Vec4f b);
 Vec4f vec4f_sub(Vec4f a, Vec4f b);
 Vec4f vec4f_mul(Vec4f a, Vec4f b);
 Vec4f vec4f_div(Vec4f a, Vec4f b);
+void vec4f_print(Vec4f v);
 
 float lerpf(float a, float b, float t);
 

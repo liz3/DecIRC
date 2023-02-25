@@ -4,6 +4,7 @@
 #include "box.h"
 #include "../utils/unicode_utils.h"
 #include "image.h"
+#include "irc_colors.h"
 
 TextBox::TextBox(TextWithState& text) : text(text) {
   atlas = &AppState::gState->atlas;
@@ -33,67 +34,124 @@ int TextBox::computeHeight(float w, int preclude) {
       }
     }
   }
- 
+
   return size;
 }
 float TextBox::computeHeightAbsolute(float w, int preclude) {
   int count = computeHeight(w, preclude);
-  return  count * atlas->effective_atlas_height;
+  return count * atlas->effective_atlas_height;
 }
 std::vector<RichChar>& TextBox::preprocess() {
   if (last_data_point != -1 && last_data_point == text.last_point)
     return rich_cache;
   rich_cache.clear();
+  bool bold = false;
+  bool italics = false;
+  bool underline = false;
+  bool strikethrough = false;
+  bool monospace = false;
+  bool color = false;
+  Vec4f fg_color = vec4fs(1);
   for (int i = 0; i < text.data.size(); ++i) {
     auto cp = text.data[i];
-    if (discordMode && cp == '<') {
-      std::string discord_entry = "";
-      for (int x = i + 1; x < text.data.size(); ++x) {
-        if (text.data[x] == '>')
-          break;
-        discord_entry += (char)text.data[x];
-      }
-      std::cout << discord_entry << "\n";
-      if (discord_entry.find("@") == 0) {
-        std::string id = discord_entry.substr(1);
-        if (msg_ref) {
-          // if (msg_ref->mentions.count(id)) {
-          //   DiscordUser& u = msg_ref->mentions[id];
-          //   auto vec = UnicodeUtils::utf8_to_codepoint("@" + u.username);
-
-          //   for (auto cpp : vec) {
-          //     RichChar ch;
-          //     ch.cp = cpp;
-          //     ch.style = "bold";
-          //     ch.type = 0;
-          //     rich_cache.push_back(ch);
-          //   }
-          //   i += 1 + discord_entry.size();
-          //   continue;
-          // }
-        }
-      } else if (discord_entry.find(":") == 0 || discord_entry.find("a") == 0) {
-        std::string id =
-            discord_entry.substr(discord_entry.find_last_of(":") + 1);
-        RichChar ch;
-        ch.type = 1;
-        ch.emote = id;
-        rich_cache.push_back(ch);
-        i += 1 + discord_entry.size();
-        continue;
-      }
-    }
     RichChar ch;
     ch.type = 0;
     ch.style = style;
+    ch.color = this->color;
+    ch.underline = underline;
+    ch.strikethrough = strikethrough;
     ch.cp = cp;
+    if (richRender) {
+      if (cp == 0x02) {
+        bold = !bold;
+        continue;
+      }
+      if (cp == 0x0F) {
+        bold = false;
+        italics = false;
+        underline = false;
+        strikethrough = false;
+        monospace = false;
+        color = false;
+        continue;
+      }
+      if (cp == 0x01D) {
+        italics = !italics;
+        continue;
+      }
+      if (cp == 0x01F) {
+        underline = !underline;
+        continue;
+      }
+      if (cp == 0x01E) {
+        strikethrough = !strikethrough;
+        continue;
+      }
+      if (cp == 0x011) {
+        monospace = !monospace;
+        continue;
+      }
+      if (cp == 0x03) {
+        auto next = text.data[i + 1];
+        if (next == ',') {
+          color = false;
+          continue;
+        }
+        if (next >= '0' && next <= '9') {
+          auto sec = text.data[i + 2];
+          if (sec == ',') {
+            std::string fg(1, (char)next);
+            size_t cc = std::stoi(fg);
+            color = true;
+            fg_color = IRC_COLORS[cc];
+            i += 3;
+            continue;
+          } else if (sec >= '0' && sec <= '9') {
+            std::string fg(1, (char)next);
+            fg += (char)sec;
+            auto third = text.data[i + 3];
+            if (third == ',') {
+              i += 5;
+            } else {
+              i += 2;
+            }
+            color = true;
+            size_t cc = std::stoi(fg);
+            fg_color = IRC_COLORS[cc];
+            continue;
+          } else {
+            std::string fg(1, (char)next);
+            size_t cc = std::stoi(fg);
+            color = true;
+            fg_color = IRC_COLORS[cc];
+            i += 1;
+          }
+
+        } else {
+          color = false;
+          continue;
+        }
+      }
+      if (bold)
+        ch.style = "bold";
+      if (color)
+        ch.color = fg_color;
+    }
+
     rich_cache.push_back(ch);
   }
   last_data_point = text.last_point;
   return rich_cache;
 }
-void TextBox::render(float x, float y, float w, float h) {
+void TextBox::renderLine(float xStart, float xEnd, float y) {
+  Box::render(xStart, -y - 4, xEnd - xStart, 2, this->color);
 
+  m_shader->shader.use();
+  m_shader->bindVertexArray();
+  atlas->bindTexture();
+  m_shader->bindBuffer();
+}
+void TextBox::render(float x, float y, float w, float h) {
   int amount = h / atlas->effective_atlas_height;
   h = amount * atlas->effective_atlas_height;
   std::vector<RenderChar> entries;
@@ -106,6 +164,8 @@ void TextBox::render(float x, float y, float w, float h) {
   auto pos = text.getCursorPosition();
   float remainingX = w;
   float remainingY = h;
+  Marker underline;
+  Marker strikethrough;
   auto preproc = preprocess();
   if (allowGrow) {
     int addedLines = text.countChar('\n');
@@ -149,9 +209,20 @@ void TextBox::render(float x, float y, float w, float h) {
     binaryXOffset++;
     if (cp.cp == '\n') {
       yCount++;
+      if (strikethrough.active) {
+        renderLine(strikethrough.startX, x + offset,
+                   ((-y) + offsetY) - (atlas->effective_atlas_height * 0.4));
+
+        strikethrough.startX = x;
+      }
+      if (underline.active) {
+        renderLine(underline.startX, x + offset, (-y) + offsetY);
+        underline.startX = x;
+      }
       offsetY += atlas->effective_atlas_height;
       offset = 0;
       remainingY -= atlas->effective_atlas_height;
+
       if (!allowGrow && remainingY <= 0) {
         break;
       }
@@ -163,6 +234,15 @@ void TextBox::render(float x, float y, float w, float h) {
     }
 
     if (offset + atlas->font_size >= w && w > 0) {
+      if (strikethrough.active) {
+        renderLine(strikethrough.startX, x + offset,
+                   ((-y) + offsetY) - (atlas->effective_atlas_height * 0.4));
+        strikethrough.startX = x;
+      }
+      if (underline.active) {
+        renderLine(underline.startX, x + offset, (-y) + offsetY);
+        underline.startX = x;
+      }
       offsetY += atlas->effective_atlas_height;
       offset = 0;
       remainingY -= atlas->effective_atlas_height;
@@ -170,25 +250,23 @@ void TextBox::render(float x, float y, float w, float h) {
         break;
       }
     }
-    if (cp.type == 0) {
-      entries.push_back(atlas->render(cp.cp, x + offset, (-y) + offsetY, color,
-                                      cp.style, scale));
-    } else if (cp.type == 1) {
-      auto* res = AppState::gState->client->image_cache.getEmote(cp.emote);
-      if (res) {
-        float imageScale =
-            (atlas->effective_atlas_height - 5) / (float)res->width;
-        imageScale *= scale;
-        res->render(x + offset,
-                    (-y) + (offsetY - (atlas->effective_atlas_height * 0.7)),
-                    imageScale);
-        // need to reactivate text shader
-        m_shader->shader.use();
-        m_shader->bindVertexArray();
-        atlas->bindTexture();
-        m_shader->bindBuffer();
-      }
+    if (cp.underline && !underline.active) {
+      underline.active = true;
+      underline.startX = x + offset;
+    } else if (!cp.underline && underline.active) {
+      renderLine(underline.startX, x + offset, (-y) + offsetY);
+      underline.active = false;
     }
+    if (cp.strikethrough && !strikethrough.active) {
+      strikethrough.active = true;
+      strikethrough.startX = x + offset;
+    } else if (!cp.strikethrough && strikethrough.active) {
+      renderLine(strikethrough.startX, x + offset, (-y) + offsetY);
+      strikethrough.active = false;
+    }
+
+    entries.push_back(atlas->render(cp.cp, x + offset, (-y) + offsetY, cp.color,
+                                    cp.style, scale));
 
     offset += cp.type == 1 ? (atlas->font_size * scale)
                            : atlas->getAdvance(cp.cp, cp.style, scale);
@@ -197,12 +275,21 @@ void TextBox::render(float x, float y, float w, float h) {
       lOffset = offsetY;
     }
   }
+  if (strikethrough.active) {
+    renderLine(strikethrough.startX, x + offset,
+               ((-y) + offsetY) - (atlas->effective_atlas_height * 0.4));
+    strikethrough.startX = x;
+  }
+  if (underline.active) {
+    renderLine(underline.startX, x + offset, (-y) + offsetY);
+    underline.startX = x;
+  }
   if (entries.size()) {
-      glBufferSubData(
-          GL_ARRAY_BUFFER, 0, sizeof(RenderChar) * entries.size(),
-          &entries[0]);  // be sure to use glBufferSubData and not glBufferData
-      glBindBuffer(GL_ARRAY_BUFFER, 0);
-      glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)entries.size());
+    glBufferSubData(
+        GL_ARRAY_BUFFER, 0, sizeof(RenderChar) * entries.size(),
+        &entries[0]);  // be sure to use glBufferSubData and not glBufferData
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)entries.size());
   }
   if (renderCursor) {
     auto offsetY = y + -(lOffset);
