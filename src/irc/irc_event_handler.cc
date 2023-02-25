@@ -246,7 +246,8 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
     IrcChannel& ch = client->joinedChannels[chatMessage.channel];
     if(ch.type == IrcChannelType::UserChannel) {
       if(!AppState::gState->focused) {
-          Notifications::sendNotification(ch.name + "@" + client->networkInfo.given_name, chatMessage.content);
+        std::string header = ch.name + "@" + client->networkInfo.given_name;
+          Notifications::sendNotification(header, chatMessage.content);
       }
     }
     auto& channelMessages = ch.messages;
