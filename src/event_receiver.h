@@ -18,7 +18,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 #endif
 };
 void window_focus_callback(GLFWwindow* window, int focused){
-
+  AppState::gState->focused = focused;
 };
 
 void character_callback(GLFWwindow* window, unsigned int codepoint) {

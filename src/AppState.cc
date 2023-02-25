@@ -12,9 +12,7 @@ AppState::AppState(std::filesystem::path cwd) : cwd(cwd), opengl_state(nullptr, 
 }
 void AppState::start() {
   Notifications::init();
-  std::string a = "This is the body";
-  std::string b = "this is the title";
-  Notifications::sendNotification(b, a);
+
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);

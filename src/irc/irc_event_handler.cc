@@ -1,5 +1,6 @@
 #include "irc_event_handler.h"
 #include "../gui_components.h"
+#include "../utils/notifications.h"
 
 IrcEventHandler* create_irc_event_handler() {
 #ifdef _WIN32
@@ -241,7 +242,13 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
         return;
       }
     }
+
     IrcChannel& ch = client->joinedChannels[chatMessage.channel];
+    if(ch.type == IrcChannelType::UserChannel) {
+      if(!AppState::gState->focused) {
+          Notifications::sendNotification(ch.name, chatMessage.content);
+      }
+    }
     auto& channelMessages = ch.messages;
     channelMessages.push_back(chatMessage);
     auto* holder = message_state.add_message(chatMessage, ch);
@@ -338,6 +345,7 @@ void IrcEventHandler::addChannel(IrcClient* client, std::string name) {
         new std::function([this]() { populateChannels(active_network); }));
 }
 void IrcEventHandler::populateChannels(IrcClient* active) {
+  std::cout << "populate channel\n";
   channel_items.clear();
   if (active) {
     for (std::map<std::string, IrcChannel>::iterator it =
@@ -558,6 +566,7 @@ void IrcEventHandler::itemSelected(std::string type, const SearchItem* item) {
       }
       return;
     }
+    active_network = p;
     populateChannels(p);
     AppState::gState->setTextReceiver(&components->channel_list);
     components->root_list_display = 3;

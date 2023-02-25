@@ -27,6 +27,7 @@ class AppState {
   void runGuiLoop();
   uint32_t window_height = 720;
   uint32_t window_width = 1280;
+  bool focused = true;
 
   static AppState* gState;
   OpenGLState opengl_state;

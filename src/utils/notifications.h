@@ -7,10 +7,7 @@ using namespace WinToastLib;
 
 class WinToastHandlerExample : public IWinToastHandler {
  public:
-    WinToastHandlerExample() {
-
-    };
-    // Public interfaces
+    WinToastHandlerExample() {};
     void toastActivated() const override;
     void toastActivated(int) const override;
     void toastDismissed(WinToastDismissalReason state) const override;
@@ -23,7 +20,7 @@ class WinToastHandlerExample : public IWinToastHandler {
 
 class Notifications {
 public:
-    static void sendNotification(std::string& title, std::string body);
+    static void sendNotification(std::string& title, std::string& body);
     static void init();
 };
 #endif
