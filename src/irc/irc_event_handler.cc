@@ -246,7 +246,7 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
     IrcChannel& ch = client->joinedChannels[chatMessage.channel];
     if(ch.type == IrcChannelType::UserChannel) {
       if(!AppState::gState->focused) {
-          Notifications::sendNotification(ch.name, chatMessage.content);
+          Notifications::sendNotification(ch.name + "@" + client->networkInfo.given_name, chatMessage.content);
       }
     }
     auto& channelMessages = ch.messages;
