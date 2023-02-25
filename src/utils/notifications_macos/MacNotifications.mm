@@ -20,8 +20,7 @@ int sendNotifToObjc(const char* title, const char* body) {
   NSUserNotificationCenter* center =
       [NSUserNotificationCenter defaultUserNotificationCenter];
   [center deliverNotification:notification];
-  printf("%s", title);
-  return 0;  // half of 42
+  return 0; 
 }
 - (BOOL)userNotificationCenter:(NSUserNotificationCenter*)center
      shouldPresentNotification:(NSUserNotification*)notification {
