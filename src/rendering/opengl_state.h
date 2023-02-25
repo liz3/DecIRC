@@ -38,7 +38,8 @@ class ShaderInstance {
   ShaderInstance(std::string vert_path,
                  std::string frag_path,
                  uint32_t size,
-                 std::vector<ShaderVar> entries);
+                 std::vector<ShaderVar> entries,
+                 std::filesystem::path cwd);
   Shader shader;
   void bindVertexArray();
   void bindBuffer();
@@ -46,7 +47,7 @@ class ShaderInstance {
 
 class OpenGLState {
  public:
-  OpenGLState(GLFWwindow* window);
+  OpenGLState(GLFWwindow* window, std::filesystem::path cwd);
 
   ShaderInstance* image_shader;
   ShaderInstance* text_shader;
@@ -55,6 +56,7 @@ class OpenGLState {
 
  private:
   GLFWwindow* m_window;
+  std::filesystem::path cwd;
 };
 
 #endif

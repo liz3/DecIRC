@@ -38,6 +38,10 @@ if(WIN32)
             third-party/wintoast/wintoastlib.cc
             )
 endif()
+if(APPLE)
+    list(APPEND DEC_SOURCES
+            src/utils/notifications_macos/MacNotifications.mm)
+endif()
 
 add_executable(dec ${DEC_SOURCES})
 
@@ -60,6 +64,10 @@ add_subdirectory(third-party/glfw)
 add_subdirectory(third-party/freetype2)
 set(USE_ZLIB OFF)
 add_subdirectory(third-party/IXWebSocket)
+if(APPLE)
+target_link_libraries(dec PUBLIC "-framework Foundation -framework Cocoa")
+add_definitions(-DDEC_MAC_PATH_BASE)
+endif()
 if(WIN32)
 target_link_libraries(dec PUBLIC glfw freetype zlib ixwebsocket webp libjpeg ws2_32 crypt32)
 else()

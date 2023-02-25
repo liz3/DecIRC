@@ -30,7 +30,8 @@ class AppState {
 
   static AppState* gState;
   OpenGLState opengl_state;
-  AppState();
+  std::filesystem::path cwd;
+  AppState(std::filesystem::path cwd);
   void start();
   Vec2f getPositionAbsolute(float x, float y, float w, float h);
   void setTextReceiver(TextReceiver* recv);

@@ -7,11 +7,14 @@
 #include "../third-party/glfw/include/GLFW/glfw3.h"
 
 AppState* AppState::gState = nullptr;
-AppState::AppState() : opengl_state(nullptr) {
+AppState::AppState(std::filesystem::path cwd) : cwd(cwd), opengl_state(nullptr, cwd) {
   gState = this;
 }
 void AppState::start() {
   Notifications::init();
+  std::string a = "This is the body";
+  std::string b = "this is the title";
+  Notifications::sendNotification(b, a);
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -36,12 +39,15 @@ void AppState::start() {
   glfwSetCharCallback(window, character_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetWindowFocusCallback(window, window_focus_callback);
-  opengl_state = OpenGLState(window);
+  opengl_state = OpenGLState(window, cwd);
 
-  atlas = FontAtlas(30, {"./assets/fonts/FiraCode-Regular.ttf",
-                         "./assets/fonts/NotoColorEmoji.ttf",
-                         "./assets/fonts/FiraCode-Bold.ttf",
-                         "./assets/fonts/NotoSansMath-Regular.ttf"});
+
+  std::vector<std::string> fontPaths;
+  for(const auto& r : {"FiraCode-Regular.ttf", "NotoColorEmoji.ttf", "FiraCode-Bold.ttf", "NotoSansMath-Regular.ttf"}) {
+    std::filesystem::path p = cwd / "assets" / "fonts" / r;
+    fontPaths.push_back(p.generic_string());
+  }
+  atlas = FontAtlas(30, fontPaths);
   atlas.valid = true;
   float xscale, yscale;
   glfwGetWindowContentScale(window, &xscale, &yscale);

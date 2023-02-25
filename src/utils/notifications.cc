@@ -14,6 +14,9 @@ templ.setTextField(wideTitle, WinToastTemplate::FirstLine);
 templ.setTextField(wideBody, WinToastTemplate::SecondLine);
 WinToast::instance()->showToast(templ, new WinToastHandlerExample());
 #endif
+#ifdef __APPLE__
+sendNotifToObjc((const char*) title.c_str(), (const char*) body.c_str());
+#endif
 }
 void Notifications::init(){
     #ifdef _WIN32
