@@ -21,10 +21,13 @@ class TextField : public TextReceiver {
              int mods) override;
   void addText(std::string text) override;
   std::string getText() override;
+  void setOnChangeCb(const OnEnterCallback& cb);
   TextWithState text;
   TextBox box;
   OnEnterCallback enterCb;
 
  private:
+  OnEnterCallback onChangeCb;
+  bool hasChangeCb = false;
 };
 #endif

@@ -19,6 +19,8 @@ void TextField::render(float x, float y, float w, float h) {
 
 void TextField::onCodePoint(int32_t cp) {
   text.append(cp);
+  if (hasChangeCb)
+    onChangeCb(text.getUtf8Value());
 }
 void TextField::onKey(GLFWwindow* window,
                       int key,
@@ -47,4 +49,8 @@ void TextField::addText(std::string newContent) {
 }
 std::string TextField::getText() {
   return text.getUtf8Value();
+}
+void TextField::setOnChangeCb(const OnEnterCallback& cb) {
+  hasChangeCb = true;
+  onChangeCb = cb;
 }

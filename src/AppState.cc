@@ -7,7 +7,8 @@
 #include "../third-party/glfw/include/GLFW/glfw3.h"
 
 AppState* AppState::gState = nullptr;
-AppState::AppState(std::filesystem::path cwd) : cwd(cwd), opengl_state(nullptr, cwd) {
+AppState::AppState(std::filesystem::path cwd)
+    : cwd(cwd), opengl_state(nullptr, cwd) {
   gState = this;
 }
 void AppState::start() {
@@ -39,9 +40,9 @@ void AppState::start() {
   glfwSetWindowFocusCallback(window, window_focus_callback);
   opengl_state = OpenGLState(window, cwd);
 
-
   std::vector<std::string> fontPaths;
-  for(const auto& r : {"FiraCode-Regular.ttf", "NotoColorEmoji.ttf", "FiraCode-Bold.ttf", "NotoSansMath-Regular.ttf"}) {
+  for (const auto& r : {"FiraCode-Regular.ttf", "NotoColorEmoji.ttf",
+                        "FiraCode-Bold.ttf", "NotoSansMath-Regular.ttf"}) {
     std::filesystem::path p = cwd / "assets" / "fonts" / r;
     fontPaths.push_back(p.generic_string());
   }

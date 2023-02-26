@@ -63,7 +63,8 @@ void IrcEventHandler::closeAll() {
 bool IrcEventHandler::isMessage(const IncomingMessage& msg) {
   if (msg.command == "PRIVMSG" || msg.command == "NOTICE")
     return true;
-  if (msg.isNumericCommand && msg.numericCommand == 401)
+  if (msg.isNumericCommand &&
+      (msg.numericCommand == 401 || msg.numericCommand == 263))
     return true;
   return false;
 }
@@ -211,6 +212,28 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
     if (isWhoIs(msg)) {
       whoIsHandler(msg, client);
     }
+    if (msg.numericCommand == 321) {
+      client->channelSearch.clear();
+    }
+    if (msg.numericCommand == 322) {
+      StreamReader reader(msg.parameters);
+      std::string uname = reader.readUntil(' ');
+      reader.skip(1);
+      IrcChannelSearchEntry entry;
+      entry.name = reader.readUntil(' ');
+      reader.skip(1);
+      std::string userCount = reader.readUntil(' ');
+      entry.user_count = std::stoi(userCount);
+      reader.skipUntil(':', true);
+      entry.topic = reader.readUntilEnd();
+      client->channelSearch.push_back(entry);
+    }
+    if (msg.numericCommand == 323) {
+      components->channels_popover.initFrom(client);
+      components->runLater(new std::function([this]() {
+        this->components->setActivePopover(&components->channels_popover);
+      }));
+    }
     return;
   }
   if (msg.command == "PING") {
@@ -244,10 +267,10 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
     }
 
     IrcChannel& ch = client->joinedChannels[chatMessage.channel];
-    if(ch.type == IrcChannelType::UserChannel) {
-      if(!AppState::gState->focused) {
+    if (ch.type == IrcChannelType::UserChannel) {
+      if (!AppState::gState->focused) {
         std::string header = ch.name + "@" + client->networkInfo.given_name;
-          Notifications::sendNotification(header, chatMessage.content);
+        Notifications::sendNotification(header, chatMessage.content);
       }
     }
     auto& channelMessages = ch.messages;
@@ -422,8 +445,11 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
       if (command == "DISCONNECT" || command == "QUIT") {
         disconnect();
       }
-      if (command == "JOIN" || command == "PART" || command == "WHOIS") {
+      if (command == "JOIN" || command == "PART" || command == "WHOIS" ||
+          command == "LIST") {
         std::string channels = reader.readUntilEnd();
+        if (command == "LIST")
+          active_network->searchQuery = channels;
         std::vector<std::string> args = {command, channels};
         active_network->write(args);
       }

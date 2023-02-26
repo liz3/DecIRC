@@ -22,8 +22,8 @@ void GuiComponents::init() {
   user_list.getList().setCallback([t](const SearchItem* item) {
     size_t off = 0;
     std::string name = item->name;
-    for(const char& e : name) {
-      if((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z'))
+    for (const char& e : name) {
+      if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z'))
         break;
       off++;
     }

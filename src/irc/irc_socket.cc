@@ -32,7 +32,7 @@ void IrcSocket::setupAndConnect() {
   connected = sock->connect(host, port, err, isCancellationRequested);
 }
 bool IrcSocket::write(std::string& data) {
-  #ifndef _WIN32
+#ifndef _WIN32
   auto result = sock->isReadyToWrite(1);
   while (result == ix::PollResultType::Timeout) {
     result = sock->isReadyToWrite(1);
@@ -45,14 +45,14 @@ bool IrcSocket::write(std::string& data) {
   return true;
 }
 std::string IrcSocket::read(size_t len) {
-  #ifndef _WIN32
+#ifndef _WIN32
   auto result = sock->isReadyToRead(25);
   while (result == ix::PollResultType::Timeout) {
     result = sock->isReadyToRead(25);
   }
   if (result != ix::PollResultType::ReadyForRead)
     return "";
-  #endif
+#endif
   char* buf = new char[len];
   std::string value;
   ssize_t res = sock->recv(buf, len);

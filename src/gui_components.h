@@ -8,8 +8,8 @@ class AppState;
 #include "./components/text_field.h"
 #include "./components/user_info.h"
 #include "./components/user_list.h"
+#include "./components/channel_list.h"
 #include "./components/image_overlay.h"
-
 
 #include "./rendering/image.h"
 #include <mutex>
@@ -36,6 +36,7 @@ class GuiComponents {
   Popover* active_popover = nullptr;
 
   UserInfo userInfo;
+  ChannelList channels_popover;
   ImageOverlay imageOverlay;
   UserList user_list;
   Image testImage;
@@ -57,22 +58,22 @@ class GuiComponents {
     tasks.push_back(t);
     AppState::gState->emptyEvent();
   }
-  void setActivePopover(Popover* c) { 
-    if(!c) {
+  void setActivePopover(Popover* c) {
+    if (!c) {
       Component* comp = dynamic_cast<Component*>(active_popover);
-      if(comp && comp->canFocus())
+      if (comp && comp->canFocus())
         comp->onFocus(false);
       state->setTextReceiver(&chat_input);
-       }
-    
+    }
+
     active_popover = c;
-    if(!c)
+    if (!c)
       return;
     Component* comp = dynamic_cast<Component*>(c);
-    if(comp && comp->canFocus()) {
+    if (comp && comp->canFocus()) {
       comp->onFocus(true);
-     }
-   }
+    }
+  }
 };
 
 #endif

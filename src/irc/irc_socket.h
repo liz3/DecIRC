@@ -8,7 +8,6 @@
 
 struct addrinfo;
 
-
 class IrcSocket {
  public:
   IrcSocket(std::string host, uint16_t port, bool useTLS, bool verifySSL);

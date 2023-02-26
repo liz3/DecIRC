@@ -25,6 +25,11 @@ struct IrcChannel {
   std::vector<IrcMessageMsg> messages;
   std::vector<std::string> users;
 };
+struct IrcChannelSearchEntry {
+  std::string name;
+  std::string topic;
+  uint32_t user_count;
+};
 struct WhoIsEntry {
   std::string realname;
   std::string host;
@@ -81,6 +86,8 @@ class IrcClient {
   }
   ConnectionState getState() { return state; }
   std::map<std::string, IrcChannel> joinedChannels;
+  std::vector<IrcChannelSearchEntry> channelSearch;
+  std::string searchQuery;
   std::map<std::string, WhoIsEntry> userInfos;
   std::string lastWhoIs;
 
