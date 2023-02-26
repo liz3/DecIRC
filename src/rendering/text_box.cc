@@ -115,9 +115,13 @@ std::vector<RichChar>& TextBox::preprocess() {
             } else {
               i += 2;
             }
-            color = true;
             size_t cc = std::stoi(fg);
-            fg_color = IRC_COLORS[cc];
+            if(cc == 99) {
+              color = false;
+            } else {
+              color = true;
+              fg_color = IRC_COLORS[cc];
+            }
             continue;
           } else {
             std::string fg(1, (char)next);

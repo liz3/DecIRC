@@ -17,6 +17,7 @@ class TextWithState {
   void remove();
   void moveLeft();
   void moveRight();
+  void clearData();
   uint32_t countChar(int32_t cp);
   std::string getUtf8Value();
 };

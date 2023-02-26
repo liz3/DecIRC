@@ -26,6 +26,8 @@ void TextField::onKey(GLFWwindow* window,
                       int action,
                       int mods) {
   bool isPress = action == GLFW_PRESS || action == GLFW_REPEAT;
+  bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+                      glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
   if (isPress) {
     if (key == GLFW_KEY_BACKSPACE) {
       text.remove();
@@ -35,6 +37,8 @@ void TextField::onKey(GLFWwindow* window,
       text.moveLeft();
     } else if (key == GLFW_KEY_RIGHT) {
       text.moveRight();
+    } else if (key == GLFW_KEY_K && ctrl_pressed) {
+      text.clearData();
     }
   }
 }

@@ -42,6 +42,11 @@ void TextWithState::remove() {
   text_x--;
   last_point++;
 }
+void TextWithState::clearData() {
+  data.clear();
+  text_x = 0;
+  last_point++;
+}
 void TextWithState::moveLeft() {
   if (text_x > 0)
     text_x--;
