@@ -1,5 +1,6 @@
 #include "irc_client.h"
 #include <iostream>
+#include <chrono>
 #include "IncomingMessage.h"
 #include "stream_reader.h"
 
@@ -29,8 +30,10 @@ void IrcClient::connect() {
     while (state != ConnectionState::Connecting &&
            state != ConnectionState::Disconnected) {
       std::string out = socket->read();
-      if (out.length() == 0)
+      if (out.length() == 0) {
+         std::this_thread::sleep_for(std::chrono::milliseconds(5));
         continue;
+      }
       recv_buff += out;
       if (recv_buff.length() > 2) {
         std::string temp = recv_buff;
