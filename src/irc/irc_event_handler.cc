@@ -15,6 +15,10 @@ void IrcEventHandler::init(GuiComponents* components) {
     return;
   this->components = components;
   auto* t = this;
+  rawBufferChannel.id = "-1";
+  rawBufferChannel.name = "--RAW BUFFER--";
+  rawBufferChannel.type = NormalChannel;
+
   t->components->runLater(new std::function(
       [t]() { t->components->status_text.setData("Ready"); }));
   connecting = true;
@@ -33,6 +37,16 @@ void IrcEventHandler::addNetwork(IrcClient* client) {
   components->network_list.setItems(&network_items);
   client->setCallback([this](const IncomingMessage& msg, IrcClient* client,
                              UiImpact impact) { processMessage(msg, client); });
+}
+void IrcEventHandler::switchRawMode() {
+  rawMode = !rawMode;
+  if(rawMode) {
+    rawBufferChannel.client = active_network;
+    loadChannel(&rawBufferChannel);
+
+  } else {
+    activateChannel(nullptr);
+  }
 }
 void IrcEventHandler::disconnect() {
   if (!active_network)
@@ -173,9 +187,23 @@ void IrcEventHandler::removeNetwork(IrcClient* client) {
   active_networks.erase(active_networks.begin() + index);
   delete client;
 }
+bool IrcEventHandler::isPrefixChar(char ch) {
+  return ch == '@' || ch == '~' || ch == '&' || ch == '+' || ch == '%';
+}
 void IrcEventHandler::processMessage(const IncomingMessage& msg,
                                      IrcClient* client) {
   auto& joinedChannels = client->joinedChannels;
+  if(rawMode) {
+    IrcMessageMsg chatMessage(msg.command, msg.isNumericCommand);
+    chatMessage.source = msg.source;
+    chatMessage.content = msg.command + " " + msg.parameters;
+     auto& channelMessages = rawBufferChannel.messages;
+    channelMessages.push_back(chatMessage);
+    auto* holder = message_state.add_message(chatMessage, rawBufferChannel);
+    components->runLater(new std::function([this, holder]() {
+      this->components->message_list.addContent(holder);
+    }));
+  }
   if (msg.isNumericCommand) {
     if (msg.numericCommand == 1) {
       client->networkInfo.network_name = msg.source.host;
@@ -187,6 +215,27 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
           }
         }
       }));
+    }
+    if(msg.numericCommand == 5) {
+        StreamReader reader(msg.parameters);
+        std::string uname = reader.readUntil(' ');
+        reader.skip(1);
+        while(reader.rem() > 0) {
+          std::string key = reader.readUntil('=');
+          reader.skip(1);
+          std::string value = reader.readUntil(' ');
+          reader.skip(1);
+          if(key == "PREFIX") {
+            StreamReader modesReader(value);
+            if(!modesReader.isNext('(')) {
+              continue; // ????
+            }
+            modesReader.skip(1);
+            client->channelModes = modesReader.readUntil(')');
+            modesReader.skip(1);
+            client->prefixes = modesReader.readUntilEnd();
+          }
+        }
     }
     if (msg.numericCommand == 332) {
       StreamReader reader(msg.parameters);
@@ -229,10 +278,43 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
       client->channelSearch.push_back(entry);
     }
     if (msg.numericCommand == 323) {
-      components->channels_popover.initFrom(client);
+      components->channels_popover.initFrom(client, QueryPopulateType::List);
       components->runLater(new std::function([this]() {
         this->components->setActivePopover(&components->channels_popover);
       }));
+    }
+    if(msg.numericCommand == 353 && client->isInNamesQuery) {
+        IrcNameSearch& nameSearch = client->nameSearch;
+        StreamReader reader(msg.parameters);
+        std::string ccl = reader.readUntil(' ');
+        reader.skip(1);
+        std::string mode = reader.readUntil(' ');
+        reader.skip(1);
+        std::string channelName = reader.readUntil(' ');
+        if (!std::count(nameSearch.channels.begin(), nameSearch.channels.end(), channelName))
+          nameSearch.channels.push_back(channelName);
+        reader.skipUntil(':', true);
+        while(reader.rem() > 0) {
+          std::string total = reader.readUntil(' ');
+          std::string modes = "";
+          while(client->isPrefix(total[0])) {
+            modes += total[0];
+            total = total.substr(1);
+          }
+          IrcNameSearchEntry entry;
+          entry.channel = channelName;
+          entry.mode = modes;
+          entry.name =total;
+          nameSearch.entries.push_back(entry);
+          reader.skip(1);
+        }
+    }
+    if(msg.numericCommand == 366 && client->isInNamesQuery) {
+        components->channels_popover.initFrom(client, QueryPopulateType::Names);
+        components->runLater(new std::function([this]() {
+          this->components->setActivePopover(&components->channels_popover);
+        }));
+        client->isInNamesQuery = false;
     }
     return;
   }
@@ -395,6 +477,8 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
     std::string command = reader.readUntil(' ');
     std::transform(command.begin(), command.end(), command.begin(), ::toupper);
     reader.skip(1);
+    if(command == "RAW")
+      switchRawMode();
     if (command == "ADDSERVER") {
       std::string host = reader.readUntil(' ');
       IrcClient* client = new IrcClient(host);
@@ -446,10 +530,14 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
         disconnect();
       }
       if (command == "JOIN" || command == "PART" || command == "WHOIS" ||
-          command == "LIST") {
+          command == "LIST" || command == "NAMES") {
         std::string channels = reader.readUntilEnd();
         if (command == "LIST")
           active_network->searchQuery = channels;
+        if(command == "NAMES"){
+          active_network->isInNamesQuery = true;
+          active_network->nameSearch.clear();
+        }
         std::vector<std::string> args = {command, channels};
         active_network->write(args);
       }
@@ -498,6 +586,9 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
   } else {
     if (!active_network || !active_channel_ptr)
       return;
+    if(rawMode) {
+      active_network->write(content);
+    } else {
     while (reader.rem() > 0) {
       IrcMessageMsg msg("PRIVMSG");
       msg.content = reader.readUntil('\n');
@@ -512,63 +603,10 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
       active_network->write(msg);
       reader.skip(1);
     }
+    }
   }
 
   components->chat_input.text.setData("");
-  // if (!active_channel.length())
-  //   return;
-  // if(editMode) {
-  //     DiscordMessagePayload p;
-  //     p.content = content;
-  //      request("/channels/" + active_channel + "/messages/" +
-  //      editingMessageId, "PATCH", true, &p,
-  //         nullptr, [](uint16_t http_code, bool success) {});
-
-  //     components->chat_input.text.setData(backupData);
-  //     backupData = "";
-  //     editMode = false;
-  //     editingMessageId = "";
-  //     return;
-  // }
-  // DiscordMessagePayload p;
-
-  // const auto p1 = std::chrono::system_clock::now();
-  // auto now = std::chrono::duration_cast<std::chrono::milliseconds>(
-  //                p1.time_since_epoch())
-  //                .count();
-  // p.nonce = std::to_string(now);
-  // p.content = content;
-  // auto* t = this;
-  // t->components->chat_input.text.setData("");
-  // if(sendFiles.size()) {
-  //   std::vector<HttpFileEntry> files;
-  //   int c = 0;
-  //   for(auto* file : sendFiles) {
-  //     HttpFileEntry e = *file;
-  //     e.id = std::to_string(c);
-  //     files.push_back(e);
-  //     DiscordMessageAttachment at;
-  //     at.id = std::to_string(c);
-  //     at.filename = e.name;
-  //     p.attachments[std::to_string(c)] = at;
-  //     c++;
-  //     delete file;
-  //   }
-  //   for (auto& e : components->chat_input.images) {
-  //       delete e.second;
-  //   }
-  //   components->chat_input.images.clear();
-  //   sendFiles.clear();
-  //   request("/channels/" + active_channel + "/messages", "POST", true,
-  //   &p,files,
-  //    nullptr, [t](uint16_t http_code, bool success) {});
-  //   sendFiles.clear();
-
-  // } else {
-  //     request("/channels/" + active_channel + "/messages", "POST", true,
-  //     &p,
-  //         nullptr, [t](uint16_t http_code, bool success) {});
-  // }
 }
 void IrcEventHandler::loadChannel(IrcChannel* ch) {
   if (active_network == ch->client && active_channel == ch->name) {
@@ -577,6 +615,7 @@ void IrcEventHandler::loadChannel(IrcChannel* ch) {
   if (active_network != ch->client)
     active_network = ch->client;
   active_channel = ch->name;
+  
   activateChannel(ch);
 }
 void IrcEventHandler::itemSelected(std::string type, const SearchItem* item) {
@@ -610,332 +649,18 @@ void IrcEventHandler::renderUserList() {
   components->user_list.initFrom(*active_channel_ptr);
   components->setActivePopover(&components->user_list);
 }
-void IrcEventHandler::query(std::string& name) {
-  auto& joinedChannels = active_network->joinedChannels;
+void IrcEventHandler::query(IrcClient* cl, std::string& name) {
+    auto& joinedChannels = cl->joinedChannels;
   if (joinedChannels.count(name))
     return;
-  addChannel(active_network, name);
+  addChannel(cl, name);
 }
-// void IrcEventHandler::onMessage(DiscordBaseMessage& msg) {
-//  if (state == Handshaking && msg.opCode == DiscordOpCode::AuthResponse) {
-//    DiscordInitResponseMessage initResponse;
-//    state = Connected;
-//    initResponse.fromJson(msg.data);
-//    hb_interval = initResponse.heartbeat_interval;
-//    std::cout << hb_interval << "\n";
-//    auto* t = this;
-//    hb_thread = new std::thread([t]() {
-//      DiscordHeartbeatMessage hbMsg;
-//      while (true) {
-//        t->sendMessage(Heartbeat, hbMsg);
-//        std::this_thread::sleep_for(std::chrono::milliseconds(t->hb_interval));
-//      }
-//    });
-//  } else {
-//    if (msg.opCode == 0) {
-//      std::string evType = msg.eventType;
-//      if (evType == "READY") {
-//        DiscordReadyPayload p;
-//        p.fromJson(msg.data);
-//        onReadyPayload(p);
-//        auto* t = this;
-//        t->components->runLater(new std::function([t]() {
-//            t->components->status_text.setData("Ready");
-//            }));
-
-//     } else if (evType == "VOICE_SERVER_UPDATE") {
-//       DiscordVoiceServerUpdate update;
-//       update.fromJson(msg.data);
-//       vcClient.voiceServerData(update);
-//     } else if (evType == "VOICE_STATE_UPDATE") {
-//       DiscordVoiceConnectionUpdate update;
-//       update.fromJson(msg.data);
-//       bool res = vcClient.voiceStateData(update);
-//       if (res) {
-//         components->status_text.setData(computeVcName());
-//         AppState::gState->emptyEvent();
-//       }
-//     } else if (evType == "CHANNEL_UPDATE") {
-//       DiscordChannelPayload channel;
-//       channel.fromJson(msg.data);
-//       if (channel.type == DmText || channel.type == DmGroup) {
-//         if (private_channels.count(channel.id)) {
-//           DiscordChannelPayload* ptr = &private_channels[channel.id];
-//           ptr->fromJson(msg.data);
-//           for (auto& e : dm_items) {
-//             if (e.user_data == ptr) {
-//               e.name = getChannelName(*ptr);
-//             }
-//           }
-//         }
-//       }
-//       if (channel.id == active_channel)
-//         updateActiveChannel();
-//     } else if (evType == "MESSAGE_CREATE") {
-//       DiscordMessagePayload message;
-//       message.fromJson(msg.data);
-//       if (active_channel == message.channel_id) {
-//         message_state.add_message(message, *active_channel_ptr);
-//       } else if (private_channels.count(message.channel_id)) {
-//         DiscordChannelPayload& ch = private_channels[message.channel_id];
-//         message_state.add_message(message, ch);
-//         uint32_t index = 0;
-//         DiscordChannelPayload* chPtr = &ch;
-//         SearchItem item;
-//         bool f = false;
-//         for (auto& e : dm_items) {
-//             if (e.user_data == chPtr) {
-//                 item = e;
-//                 f = true;
-//                 break;
-//             }
-
-//             index++;
-//         }
-//         if (f) {
-//             dm_items.erase(dm_items.begin() + index);
-//             dm_items.insert(dm_items.begin(), item);
-//           }
-//       }
-//       if (active_channel == message.channel_id) {
-//           auto* t = this;
-//           std::string id = message.id;
-//           components->runLater(new std::function([t, id]() {
-//               t->components->message_list.addContent(
-//                   t->message_state.message_index[id]);
-//               }));
-//       }
-//     } else if (evType == "MESSAGE_UPDATE") {
-//       DiscordMessagePayload message;
-//       message.fromJson(msg.data);
-//       if (message_state.message_index.count(message.id)) {
-//         MessageHolder* h = message_state.message_index[message.id];
-//         h->message = message;
-//         if (active_channel == message.channel_id) {
-//           auto* t = this;
-//           components->runLater(new std::function([t, h]() {
-//             auto& l = t->components->message_list;
-//             l.updateEntry(h);
-//           }));
-//         }
-//       }
-//     } else if (evType == "MESSAGE_DELETE") {
-//       DiscordMessageDeletePayload* deleter =
-//           new DiscordMessageDeletePayload();
-//       deleter->fromJson(msg.data);
-//       if (active_channel == deleter->channel_id) {
-//         auto* t = this;
-//         components->runLater(new std::function([t, deleter]() {
-//           t->components->message_list.removeEntry(
-//               t->message_state.message_index[deleter->id]);
-//           t->message_state.remove_message(deleter->id);
-//           delete deleter;
-//         }));
-//       } else {
-//         message_state.remove_message(deleter->id);
-//         delete deleter;
-//       }
-//     } else if (evType == "MESSAGE_REACTION_ADD") {
-//       DiscordMessageReactionAddPayload add;
-//       add.fromJson(msg.data);
-//       if (add.emote_id.length() &&
-//           message_state.message_index.count(add.message_id)) {
-//         MessageHolder* holder =
-//         message_state.message_index[add.message_id]; DiscordMessagePayload&
-//         msg = holder->message; if (msg.reactions.count(add.emote_id)) {
-//           (&msg.reactions[add.emote_id])->count++;
-//         } else {
-//           DiscordMessageReactionPayload reaction;
-//           reaction.count = 1;
-//           reaction.emote_id = add.emote_id;
-//           reaction.emote_name = add.emote_name;
-//           reaction.me = add.user_id == user.id;
-//           msg.reactions[reaction.emote_id] = reaction;
-//         }
-//         if (active_channel == add.channel_id)
-//           AppState::gState->emptyEvent();
-//       }
-//     } else if (evType == "CALL_CREATE") {
-//       if (startedDmCall) {
-//         DiscordCallRingRequest req;
-//         request("/channels/" + active_channel + "/call/ring", "POST", true,
-//                 &req, nullptr, [](uint16_t http_code, bool success) {});
-//         startedDmCall = false;
-//       }
-//     } else if (evType == "CHANNEL_CREATE") {
-//       DiscordChannelPayload p;
-//       p.fromJson(msg.data);
-//       if (p.type == DmText || p.type == DmGroup) {
-//         private_channels[p.id] = p;
-//         SearchItem item;
-//         item.user_data = &private_channels[p.id];
-//         item.name = getChannelName(p);
-//         dm_items.insert(dm_items.begin(), item);
-//         AppState::gState->emptyEvent();
-//       } else if (p.type == VcChannel || p.type == TextChannel) {
-//         (&guilds[p.guild_id])->channels[p.id] = p;
-//       }
-//     } else if (evType == "GUILD_CREATE") {
-//       DiscordGuildPayload guild;
-//       guild.fromJson(msg.data);
-//       guilds[guild.id] = guild;
-//       SearchItem item;
-//       item.user_data = &guilds[guild.id];
-//       item.name = guild.name;
-//       guild_items.insert(guild_items.begin(), item);
-//       components->guilds_list.recompute();
-//       AppState::gState->emptyEvent();
-//     } else if (evType == "GUILD_DELETE") {
-//       std::string id = msg.data["id"];
-//       if (guilds.count(id)) {
-//         DiscordGuildPayload& g = guilds[id];
-//         uint32_t index = -1;
-//         for (int i = 0; i < guild_items.size(); ++i) {
-//           if (guild_items[i].user_data == &g) {
-//             index = i;
-//             break;
-//           }
-//         }
-//         if (index != -1) {
-//           guild_items.erase(guild_items.begin() + index);
-//           components->guilds_list.recompute();
-//         }
-//         for (auto& ch_raw : g.channels) {
-//           auto& ch = ch_raw.second;
-
-//           if (active_channel == ch.id) {
-//             channel_items.clear();
-//             components->channel_list.recompute();
-
-//             active_channel = "";
-//             active_channel_ptr = nullptr;
-//             auto* t = this;
-//             std::string* ptr = new std::string(ch.id);
-//             components->runLater(new std::function([t, ptr]() {
-//               t->components->message_list.clearList();
-//               t->message_state.remove_channel(*ptr);
-//               delete ptr;
-//               t->components->header_text.setData("");
-//             }));
-
-//           } else {
-//             if (message_state.state.count(ch.id))
-//               message_state.remove_channel(ch.id);
-//           }
-//         }
-//         guilds.erase(g.id);
-//         AppState::gState->emptyEvent();
-//       }
-//     } else if (evType == "CHANNEL_DELETE") {
-//       DiscordChannelPayload ch;
-//       ch.fromJson(msg.data);
-
-//       if (ch.guild_id.size()) {
-//         auto& guild = guilds[ch.guild_id];
-//         DiscordChannelPayload& lChannel = guild.channels[ch.id];
-//         uint32_t index = -1;
-//         for (int i = 0; i < channel_items.size(); ++i) {
-//           auto& e = channel_items[i];
-//           if (e.user_data == &lChannel) {
-//             index = i;
-//             break;
-//           }
-//         }
-//         if (index != -1) {
-//           channel_items.erase(channel_items.begin() + index);
-//           components->channel_list.recompute();
-//         }
-//         guild.channels.erase(ch.id);
-//       } else if (ch.type == DmText || ch.type == DmGroup) {
-//         auto& lChannel = private_channels[ch.id];
-//         uint32_t index = -1;
-//         for (int i = 0; i < dm_items.size(); ++i) {
-//           auto& e = dm_items[i];
-//           if (e.user_data == &lChannel) {
-//             index = i;
-//             break;
-//           }
-//         }
-//         if (index != -1) {
-//           dm_items.erase(channel_items.begin() + index);
-//           components->dm_list.recompute();
-//         }
-//         private_channels.erase(ch.id);
-//       }
-
-//       if (active_channel == ch.id) {
-//         active_channel = "";
-//         active_channel_ptr = nullptr;
-//         auto* t = this;
-//         std::string* ptr = new std::string(ch.id);
-//         components->runLater(new std::function([t, ptr]() {
-//           t->components->message_list.clearList();
-//           t->message_state.remove_channel(*ptr);
-//           delete ptr;
-//           t->components->header_text.setData("");
-//         }));
-//       } else {
-//         message_state.remove_channel(ch.id);
-//       }
-//     } else if(evType == "READY_SUPPLEMENTAL") {
-//       DiscordSuplementalReadyPayload r;
-//       r.fromJson(msg.data);
-//       presences = r.presences;
-//     }
-//   }
-// }
-//}
+void IrcEventHandler::query(std::string& name) {
+  if(active_network)
+  query(active_network, name);
+}
 void IrcEventHandler::updateActiveChannel() {
-  // auto* t = this;
-  // components->runLater(new std::function([t]() {
-  //   t->components->header_text.setData(
-  //       t->getChannelName(*t->active_channel_ptr));
-  // }));
 }
-// void IrcEventHandler::sendEvent(std::string name, DiscordMessage& msg) {
-//    if (!connecting)
-//      return;
-//    json d = msg.getJson();
-//    DiscordBaseMessage m = {Ev, d, name};
-//    json toSend = m;
-//    std::cout << toSend << "\n";
-//    m_web_socket.send(toSend.dump());
-//  };
-
-// void DiscordClient::loadChannel(DiscordChannelPayload* channel) {
-//   std::string channel_id = channel->id;
-//   std::cout << channel_id << "\n";
-//   if (active_channel == channel_id)
-//     return;
-
-//   bool needsLoad = !message_state.state.count(channel_id) ||
-//                    (&message_state.state[channel_id])->loaded == false;
-//   std::cout << needsLoad << ":" << channel_id << "\n";
-//   if (needsLoad) {
-//     auto* t = this;
-//     DiscordMessageListStruct* list = new DiscordMessageListStruct();
-//     request("/channels/" + channel_id + "/messages?limit=50", "GET", false,
-//             nullptr, list,
-//             [list, channel, t](uint16_t http_code, bool success) {
-//               if (!success) {
-//                 delete list;
-//                 t->components->runLater(new std::function(
-//                     [t, channel]() { t->activateChannel(channel); }));
-//                 return;
-//               }
-//               std::vector<DiscordMessagePayload>& messages =
-//               list->messages; t->message_state.load_channel(messages,
-//               *channel);
-
-//               delete list;
-
-//               t->components->runLater(new std::function(
-//                   [t, channel]() { t->activateChannel(channel); }));
-//             });
-//   } else {
-//     activateChannel(channel);
-//   }
-//}
 
 void IrcEventHandler::activateChannel(IrcChannel* ch) {
   if (ch == nullptr) {
@@ -958,151 +683,11 @@ void IrcEventHandler::activateChannel(IrcChannel* ch) {
   active_channel = ref.name;
   active_channel_ptr = ch;
 }
-// void IrcEventHandler::sendMessage(DiscordOpCode op, DiscordMessage& msg) {
-//   if (!connecting)
-//     return;
-//   json d = msg.getJson();
-//   DiscordBaseMessage m = {op, d, ""};
-//   json toSend = m;
-//   std::cout << toSend << "\n";
-//   m_web_socket.send(toSend.dump());
-// };
-// void IrcEventHandler::request(std::string path,
-//                             std::string method,
-//                             bool hasBody,
-//                             DiscordMessage* body,
-//                             DiscordMessage* out,
-//                             const HttpResultCallback& callback) {
-//   std::cout << "http req: " << method << ":" << path << "\n";
-//   ix::WebSocketHttpHeaders headers;
-//   if (method != "GET")
-//     headers["Content-Type"] = "application/json";
-//   headers["User-Agent"] =
-//       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-//       "(KHTML, like Gecko) discord/0.0.266 Chrome/91.0.4472.164 "
-//       "Electron/13.6.6 Safari/537.3";
-//   std::string url = api_base + path;
-//   auto req = httpClient.createRequest(url, method);
-//   req->extraHeaders = headers;
-//   if (hasBody) {
-//     json b = body->getJson();
-//     req->body = b.dump();
-//   }
-//   httpClient.performRequest(
-//       req, [out, callback](const ix::HttpResponsePtr& response) {
-//         auto errorCode = response->errorCode;
-//         auto responseCode = response->statusCode;
-//         bool success = errorCode == ix::HttpErrorCode::Ok;
-//         if (success && responseCode == 200) {
-//           auto payload = response->body;
-//           if (payload.length() && out != nullptr) {
-//             json parsed = json::parse(payload);
-//             out->fromJson(parsed);
-//           }
-//         }
-//         callback(responseCode, success);
-//       });
-// }
-// void IrcEventHandler::request(std::string path,
-//                             std::string method,
-//                             bool hasBody,
-//                             DiscordMessage* body,
-//                             std::vector<HttpFileEntry>& files,
-//                             DiscordMessage* out,
-//                             const HttpResultCallback& callback) {
-//   std::cout << "http req multipart: " << method << ":" << path << "\n";
-//   ix::WebSocketHttpHeaders headers;
-//   json b = body->getJson();
-//   std::string jsonPayload = b.dump();
-//   FormData formData = FormData::generate(files, jsonPayload);
-//   if (method != "GET")
-//     headers["Content-Type"] =
-//         "multipart/form-data; boundary=----" + formData.boundary;
-//   headers["User-Agent"] =
-//       "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
-//       "(KHTML, like Gecko) discord/0.0.266 Chrome/91.0.4472.164 "
-//       "Electron/13.6.6 Safari/537.3";
-//   std::string url = api_base + path;
-//   auto req = httpClient.createRequest(url, method);
-//   req->extraHeaders = headers;
-//   if (hasBody) {
-//     req->body = formData.data;
-//   }
-//   httpClient.performRequest(
-//       req, [out, callback](const ix::HttpResponsePtr& response) {
-//         auto errorCode = response->errorCode;
-//         auto responseCode = response->statusCode;
-//         bool success = errorCode == ix::HttpErrorCode::Ok;
-//         if (success && responseCode == 200) {
-//           auto payload = response->body;
-//           if (payload.length() && out != nullptr) {
-//             json parsed = json::parse(payload);
-//             out->fromJson(parsed);
-//           }
-//         }
-//         callback(responseCode, success);
-//       });
-// }
 void IrcEventHandler::fetchMore() {
-  // if (!active_channel.length() || fetching ||
-  //     components->message_list.msg_load_ptr != nullptr) {
-  //   return;
-  // }
-  // ChannelState& ch_state = message_state.state[active_channel];
-
-  // if (ch_state.reached_end || !ch_state.loaded)
-  //   return;
-  // std::cout << "invoked fetch more\n";
-  // fetching = true;
-  // std::string first = ch_state.messages[0]->id;
-  // auto* t = this;
-  // DiscordMessageListStruct* list = new DiscordMessageListStruct();
-  // request(
-  //     "/channels/" + active_channel + "/messages?limit=50&before=" + first,
-  //     "GET", false, nullptr, list, [t, list](uint16_t http_code, bool
-  //     success) {
-  //       if (!success)
-  //         return;
-  //       std::vector<DiscordMessagePayload>& messages = list->messages;
-  //       t->message_state.state[t->active_channel].reached_end =
-  //           messages.size() < 50;
-  //       auto out =
-  //           t->message_state.prepend_messages(messages,
-  //           *t->active_channel_ptr);
-  //       std::vector<MessageHolder*>* ptr = new
-  //       std::vector<MessageHolder*>(out);
-  //       t->components->message_list.msg_load_ptr = ptr;
-  //       t->fetching = false;
-  //       delete list;
-  //       AppState::gState->emptyEvent();
-  //     });
 }
 void IrcEventHandler::tryDelete() {
-  // auto mlist = components->message_list;
-  // if (mlist.selected_index != -1) {
-  //   auto index = mlist.messages.size() - mlist.selected_index - 1;
-  //   RenderMessage* m = mlist.messages[index];
-  //   DiscordMessagePayload& msg = m->m_holder->message;
-  //   request("/channels/" + msg.channel_id + "/messages/" + msg.id,
-  //   "DELETE",
-  //           false, nullptr, nullptr, [](uint16_t http_code, bool success)
-  //           {});
-  // }
 }
 void IrcEventHandler::tryEdit() {
-  // if(editMode)
-  //   return;
-  //   auto mlist = components->message_list;
-  // if (mlist.selected_index != -1) {
-  //   auto index = mlist.messages.size() - mlist.selected_index - 1;
-  //   RenderMessage* m = mlist.messages[index];
-  //   DiscordMessagePayload& msg = m->m_holder->message;
-  //   editMode = true;
-  //   editingMessageId = msg.id;
-  //   backupData = components->chat_input.text.getUtf8Value();
-  //   components->chat_input.text.setData(msg.content);
-  //   AppState::gState->setTextReceiver(&components->chat_input);
-  // }
 }
 void IrcEventHandler::cancelEdit() {
   if (!editMode)

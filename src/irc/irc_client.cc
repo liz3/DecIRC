@@ -153,3 +153,17 @@ void IrcClient::write(std::vector<std::string> parts) {
 IrcClient::~IrcClient() {
   disconnect();
 }
+bool IrcClient::isChannelMode(char ch) {
+  for(const char c : channelModes) {
+    if(c == ch)
+      return true;
+  }
+  return false;
+}
+bool IrcClient::isPrefix(char ch) {
+  for(const char c : prefixes) {
+    if(c == ch)
+      return true;
+  }
+  return false;
+}

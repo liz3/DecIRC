@@ -10,6 +10,11 @@
 #include "search_list.h"
 #include "../rendering/box.h"
 
+enum QueryPopulateType {
+    List,
+    Names
+};
+
 class ChannelList : public Popover, public Component {
  public:
   ChannelList();
@@ -18,7 +23,7 @@ class ChannelList : public Popover, public Component {
   void render(float x, float y, float w, float h) override;
   void render(float width, float height) override;
 
-  void initFrom(IrcClient* client);
+  void initFrom(IrcClient* client, QueryPopulateType what);
   SearchList searchList;
   TextWithState queryText;
   TextBox queryBox;
@@ -26,5 +31,6 @@ class ChannelList : public Popover, public Component {
  private:
   std::vector<SearchItem> items;
   IrcClient* network = nullptr;
+  QueryPopulateType mode;
 };
 #endif

@@ -23,7 +23,7 @@ void GuiComponents::init() {
     size_t off = 0;
     std::string name = item->name;
     for (const char& e : name) {
-      if ((e >= 'a' && e <= 'z') || (e >= 'A' && e <= 'Z'))
+      if (!t->state->client->active_network->isPrefix(e))
         break;
       off++;
     }

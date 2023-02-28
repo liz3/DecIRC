@@ -23,7 +23,7 @@ void AppState::start() {
 #endif
 
   window =
-      glfwCreateWindow(window_width, window_height, "dec", nullptr, nullptr);
+      glfwCreateWindow(window_width, window_height, "DecIRC", nullptr, nullptr);
   if (window == NULL) {
     const char* description;
     int code = glfwGetError(&description);

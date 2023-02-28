@@ -30,6 +30,19 @@ struct IrcChannelSearchEntry {
   std::string topic;
   uint32_t user_count;
 };
+struct IrcNameSearchEntry {
+  std::string name;
+  std::string channel;
+  std::string mode;
+};
+struct IrcNameSearch {
+  std::vector<std::string> channels;
+  std::vector<IrcNameSearchEntry> entries;
+  void clear() {
+    channels.clear();
+    entries.clear();
+  }
+};
 struct WhoIsEntry {
   std::string realname;
   std::string host;
@@ -66,9 +79,12 @@ class IrcClient {
   ~IrcClient();
   void write(std::vector<std::string> arguments);
   void write(IrcMessage& msg);
+  void write(std::string final_cmd);
   void connect();
   void disconnect();
   void reset();
+  bool isChannelMode(char ch);
+  bool isPrefix(char ch);
   IrcChannelType readChannelType(char c);
   std::string password;
   std::string nick;
@@ -90,11 +106,15 @@ class IrcClient {
   std::string searchQuery;
   std::map<std::string, WhoIsEntry> userInfos;
   std::string lastWhoIs;
+  IrcNameSearch nameSearch;
+
+  std::string channelModes;
+  std::string prefixes;
+  bool isInNamesQuery = false;
 
  private:
   OnIrcMessage ircMessageListener;
   std::string recv_buff;
-  void write(std::string final_cmd);
   void handleMessage(std::string message);
   UiImpact handleCommand(IncomingMessage&);
   ConnectionState state = ConnectionState::Idle;

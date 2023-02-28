@@ -52,12 +52,14 @@ class IrcEventHandler {
   bool isMessage(const IncomingMessage&);
   bool isWhoIs(const IncomingMessage&);
   void query(std::string& name);
+  void query(IrcClient* cl, std::string& name);
   void disconnect();
   void removeFromList(std::vector<std::string>& list, const std::string& value);
   void whoIsHandler(const IncomingMessage&, IrcClient* client);
   void removeNetwork(IrcClient* client);
   void closeAll();
-
+  bool isPrefixChar(char ch);
+  void switchRawMode();
  private:
   size_t global_channel_count = 0;
   ix::HttpClient httpClient;
@@ -70,6 +72,8 @@ class IrcEventHandler {
   bool connecting = false;
   std::thread* hb_thread = nullptr;
   uint32_t hb_interval;
+  IrcChannel rawBufferChannel;
+  bool rawMode = false;
 
   GuiComponents* components;
   void activateChannel(IrcChannel* channel);
