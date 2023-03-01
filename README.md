@@ -34,6 +34,7 @@ run the executable!
 * Adding and connecting to networks, no SASL support yet.
 * Query, names, list, msg, join, part, whois are the commands which have basic implementations, most of which come with ui abstractions.
 * a raw mode which is basically telnet with the ircd for everything missing(a lot).
+* native integration with Mac and windows notification centers, the xdg equivalent will come but i also wanna do wayland and im a bit scared of the effort that will be.
 
 ## Dec Specific commands
 ```
