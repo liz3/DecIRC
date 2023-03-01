@@ -25,13 +25,14 @@ int TextBox::computeHeight(float w, int preclude) {
       size++;
       currentAdvance = 0;
     } else {
-      currentAdvance += cp.type == 1
+      auto adv = cp.type == 1
                             ? (atlas->font_size * scale)
                             : atlas->getAdvance(cp.cp, cp.style, scale);
-      if (currentAdvance >= w) {
+      if (currentAdvance + adv >= w) {
         size++;
         currentAdvance = 0;
       }
+        currentAdvance += adv;
     }
   }
 
@@ -236,8 +237,9 @@ void TextBox::render(float x, float y, float w, float h) {
       }
       continue;
     }
-
-    if (offset + atlas->font_size >= w && w > 0) {
+    auto charAdv = cp.type == 1 ? (atlas->font_size * scale)
+                               : atlas->getAdvance(cp.cp, cp.style, scale);
+    if (w > 0 && offset + charAdv >= w) {
       if (strikethrough.active) {
         renderLine(strikethrough.startX, x + offset,
                    ((-y) + offsetY) - (atlas->effective_atlas_height * 0.4));
@@ -272,8 +274,7 @@ void TextBox::render(float x, float y, float w, float h) {
     entries.push_back(atlas->render(cp.cp, x + offset, (-y) + offsetY, cp.color,
                                     cp.style, scale));
 
-    offset += cp.type == 1 ? (atlas->font_size * scale)
-                           : atlas->getAdvance(cp.cp, cp.style, scale);
+    offset += charAdv;
     if (binaryXOffset == text.text_x) {
       lxOffset = offset;
       lOffset = offsetY;

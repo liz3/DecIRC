@@ -51,15 +51,15 @@ void GuiComponents::render() {
 
   auto window_width = state->window_width;
   auto window_height = state->window_height;
-  message_list.setWidth(window_width * 0.70);
+  message_list.setWidth(window_width - 490);
   message_list.setAvailableHeight(window_height - 65 - 140);
-  message_list.render(window_width - (window_width * 0.7), 80, 0, 0);
-  chat_input.render(window_width - (window_width * 0.7), window_height - 85,
-                    window_width * 0.69, 70);
+  message_list.render(470, 80, 0, 0);
+  chat_input.render(470, window_height - 85,
+                    window_width - 490, 70);
   if (header_text.data.size()) {
-    auto abs = state->getPositionAbsolute(window_width - (window_width * 0.7),
-                                          -30, window_width * 0.7, 65);
-    header_comp.render(abs.x, abs.y, window_width * 0.7, 65);
+    auto abs = state->getPositionAbsolute(window_width - (window_width - 470),
+                                          -30, window_width - 490, 65);
+    header_comp.render(abs.x, abs.y, window_width - 490, 65);
   }
 
   network_list.render(50, 50, 400, 400);

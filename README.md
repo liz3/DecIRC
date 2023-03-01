@@ -38,7 +38,8 @@ run the executable!
 
 ## Dec Specific commands
 ```
-/addserver - add a network to the list, the syntax is "/addserver host" followed by a list of key=value pairs for settings, values can be enclosed with " to include spaces. keys are 
+/addserver - add a network to the list, the syntax is "/addserver host" followed by a list 
+of key=value pairs for settings, values can be enclosed with " to include spaces. keys are 
 - name: required, network display name
 - nick: required, nickname to send to ircd, currently theres no fallback logic
 - username: Username
@@ -53,16 +54,16 @@ A example could be: /addserver host.tld name="My Network" nick=liz3 username=liz
 
 /disconnect - close connection, currently also resets channels and users states
 
-/raw - switch between "rendering" and "raw buffer"
+/raw - switch between normal "rendering" and "raw buffer"
 ```
 
 # Raw Buffer
-The `/raw` command will toggle into a buffer which when you type a message will be send 1:1 to the Ircd and received message will besides being normally processed appended to that buffer.
+The `/raw` command will toggle into a buffer which when you type a message will be send 1:1 to the Ircd and received message will, besides being normally processed also be appended to that buffer.
 
 
 
 ## Shortcuts
-Gnerally navigation is done with the arrow keys and enter.
+Generally navigation is done with the arrow keys and enter.
 C = CTRL
 ```
 C-d - Focus channel list(if network active)
@@ -93,7 +94,7 @@ Since this is a bare bones project there are a couple of deps used, here they ar
 * [IXWebSocket](https://github.com/machinezone/IXWebSocket) - very very easy abstraction for http requests and websockets, I only use its TLS socket api.
 * [nlohmann/json](https://github.com/nlohmann/json) - easily the best json library available for c++, used for work with json!
 * [libjpeg](http://libjpeg.sourceforge.net/) - jpeg decoder
-* [libwebp](https://chromium.googlesource.com/webm/libwebp) - webp decoder, discord uses webp in quite some places
+* [libwebp](https://chromium.googlesource.com/webm/libwebp) - webp decoder.
 * [lodepng](https://github.com/lvandeve/lodepng) - PNG decoder
 
 ## LICENSE 
