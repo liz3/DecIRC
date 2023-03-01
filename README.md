@@ -62,6 +62,7 @@ The `/raw` command will toggle into a buffer which when you type a message will 
 
 
 ## Shortcuts
+Gnerally navigation is done with the arrow keys and enter.
 C = CTRL
 ```
 C-d - Focus channel list(if network active)
