@@ -68,6 +68,8 @@ C-d - Focus channel list(if network active)
 C-g - Focus Networks list
 C-m - focus text-field again
 
+C-k - clear input
+
 C-p - Scroll up active buffer
 C-n - Scroll down active buffer
 C-e - Scroll active biffer to bottom

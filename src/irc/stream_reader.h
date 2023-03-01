@@ -41,9 +41,10 @@ class StreamReader {
     remaining -= skip;
   }
   std::string readUntilEnd() {
+    std::string remStr = msg.substr(offset);
     offset = length;
     remaining = 0;
-     return msg.substr(offset);
+    return remStr;
   }
   bool isNext(char what) { return msg[offset] == what; }
   bool has(char search) {
