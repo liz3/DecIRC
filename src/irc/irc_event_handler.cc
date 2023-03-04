@@ -753,7 +753,9 @@ void IrcEventHandler::uploadPngFile() {
         auto& channelMessages = ch.messages;
         channelMessages.push_back(msg);
         auto* holder = message_state.add_message(msg, ch);
-        components->message_list.addContent(holder);
+          components->runLater(
+        new std::function([holder, this]() {  components->message_list.addContent(holder); }));
+       
         active_network->write(msg);
       }
     }
