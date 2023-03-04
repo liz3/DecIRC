@@ -66,7 +66,7 @@ void ChannelList::initFrom(IrcClient* client, QueryPopulateType type) {
    for (auto& entry : client->nameSearch.entries) {
     SearchItem item;
     item.name = entry.channel + (entry.mode.length() ? ("[" + entry.mode +
-                        "]: " ) : "")+ entry.name;
+                        "]: " ) : ": ")+ entry.name;
     item.user_data = &entry;
     items.push_back(item);
   }
