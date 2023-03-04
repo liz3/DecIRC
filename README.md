@@ -56,6 +56,8 @@ A example could be: /addserver host.tld name="My Network" nick=liz3 username=liz
 /disconnect - close connection, currently also resets channels and users states
 
 /raw - switch between normal "rendering" and "raw buffer"
+
+/notify - Toggle notifications in current channel. this does not give feedback rn. 
 ```
 
 # Raw Buffer
