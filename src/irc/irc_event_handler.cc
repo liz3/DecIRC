@@ -41,6 +41,16 @@ void IrcEventHandler::addNetwork(IrcClient* client) {
   components->network_list.setItems(&network_items);
   client->setCallback([this](const IncomingMessage& msg, IrcClient* client,
                              UiImpact impact) { processMessage(msg, client); });
+  if(client->autoConnect) {
+  addChannel(client, client->networkInfo.given_name);
+  client->connect();
+  for (auto& entry : network_items) {
+    if (reinterpret_cast<IrcClient*>(entry.user_data) == client) {
+      entry.name = "..." + client->networkInfo.given_name;
+      break;
+    }
+  }
+}
 }
 void IrcEventHandler::switchRawMode() {
   rawMode = !rawMode;
@@ -190,6 +200,7 @@ void IrcEventHandler::removeNetwork(IrcClient* client) {
   }
   active_networks.erase(active_networks.begin() + index);
   delete client;
+  AppState::gState->config.saveClients(active_networks);
 }
 bool IrcEventHandler::isPrefixChar(char ch) {
   return ch == '@' || ch == '~' || ch == '&' || ch == '+' || ch == '%';
@@ -529,6 +540,9 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
         }
         if (key == "ssl") {
           client->useTLS = value == "true";
+        }
+        if (key == "auto-connect") {
+          client->autoConnect = value == "true";
         }
         if (key == "verify-ssl") {
           client->verifySSL = value == "true";

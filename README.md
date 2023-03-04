@@ -47,7 +47,8 @@ of key=value pairs for settings, values can be enclosed with " to include spaces
 - pass: Login password
 - port: specify port, defaults to 6697
 - ssl: "true" or "false", set if a tls connection should be established, false by default
-- verify-ssl: whether to verify certificates with local CAs, false by default
+- verify-ssl: "true" or "false" whether to verify certificates with local CAs, false by default
+- auto-connect: "true" or "false", whether to connect on open
 A example could be: /addserver host.tld name="My Network" nick=liz3 username=liz3 realname=liz3 ssl=true
 
 /delserver - delete active server
