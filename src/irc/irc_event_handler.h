@@ -81,6 +81,9 @@ class IrcEventHandler {
   void populateChannels(IrcClient* active);
   void loadChannel(IrcChannel* ch);
   void processMessage(const IncomingMessage& msg, IrcClient* client);
+  #ifdef DEC_LIZ_PNG_UPLOAD
+    void uploadPngFile();
+  #endif
 };
 IrcEventHandler* create_irc_event_handler();
 

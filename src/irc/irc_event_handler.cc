@@ -23,6 +23,9 @@ void IrcEventHandler::init(GuiComponents* components) {
   t->components->runLater(new std::function(
       [t]() { t->components->status_text.setData("Ready"); }));
   connecting = true;
+  auto& loadedNetworks = AppState::gState->config.loadClients();
+  for (auto* n : loadedNetworks)
+    addNetwork(n);
   // infstream.zalloc = Z_NULL;
   // infstream.zfree = Z_NULL;
   // infstream.opaque = Z_NULL;
@@ -41,7 +44,7 @@ void IrcEventHandler::addNetwork(IrcClient* client) {
 }
 void IrcEventHandler::switchRawMode() {
   rawMode = !rawMode;
-  if(rawMode) {
+  if (rawMode) {
     rawBufferChannel.client = active_network;
     loadChannel(&rawBufferChannel);
 
@@ -194,11 +197,11 @@ bool IrcEventHandler::isPrefixChar(char ch) {
 void IrcEventHandler::processMessage(const IncomingMessage& msg,
                                      IrcClient* client) {
   auto& joinedChannels = client->joinedChannels;
-  if(rawMode) {
+  if (rawMode) {
     IrcMessageMsg chatMessage(msg.command, msg.isNumericCommand);
     chatMessage.source = msg.source;
     chatMessage.content = msg.command + " " + msg.parameters;
-     auto& channelMessages = rawBufferChannel.messages;
+    auto& channelMessages = rawBufferChannel.messages;
     channelMessages.push_back(chatMessage);
     auto* holder = message_state.add_message(chatMessage, rawBufferChannel);
     components->runLater(new std::function([this, holder]() {
@@ -217,26 +220,26 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
         }
       }));
     }
-    if(msg.numericCommand == 5) {
-        StreamReader reader(msg.parameters);
-        std::string uname = reader.readUntil(' ');
+    if (msg.numericCommand == 5) {
+      StreamReader reader(msg.parameters);
+      std::string uname = reader.readUntil(' ');
+      reader.skip(1);
+      while (reader.rem() > 0) {
+        std::string key = reader.readUntil('=');
         reader.skip(1);
-        while(reader.rem() > 0) {
-          std::string key = reader.readUntil('=');
-          reader.skip(1);
-          std::string value = reader.readUntil(' ');
-          reader.skip(1);
-          if(key == "PREFIX") {
-            StreamReader modesReader(value);
-            if(!modesReader.isNext('(')) {
-              continue; // ????
-            }
-            modesReader.skip(1);
-            client->channelModes = modesReader.readUntil(')');
-            modesReader.skip(1);
-            client->prefixes = modesReader.readUntilEnd();
+        std::string value = reader.readUntil(' ');
+        reader.skip(1);
+        if (key == "PREFIX") {
+          StreamReader modesReader(value);
+          if (!modesReader.isNext('(')) {
+            continue;  // ????
           }
+          modesReader.skip(1);
+          client->channelModes = modesReader.readUntil(')');
+          modesReader.skip(1);
+          client->prefixes = modesReader.readUntilEnd();
         }
+      }
     }
     if (msg.numericCommand == 332) {
       StreamReader reader(msg.parameters);
@@ -284,38 +287,39 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
         this->components->setActivePopover(&components->channels_popover);
       }));
     }
-    if(msg.numericCommand == 353 && client->isInNamesQuery) {
-        IrcNameSearch& nameSearch = client->nameSearch;
-        StreamReader reader(msg.parameters);
-        std::string ccl = reader.readUntil(' ');
-        reader.skip(1);
-        std::string mode = reader.readUntil(' ');
-        reader.skip(1);
-        std::string channelName = reader.readUntil(' ');
-        if (!std::count(nameSearch.channels.begin(), nameSearch.channels.end(), channelName))
-          nameSearch.channels.push_back(channelName);
-        reader.skipUntil(':', true);
-        while(reader.rem() > 0) {
-          std::string total = reader.readUntil(' ');
-          std::string modes = "";
-          while(client->isPrefix(total[0])) {
-            modes += total[0];
-            total = total.substr(1);
-          }
-          IrcNameSearchEntry entry;
-          entry.channel = channelName;
-          entry.mode = modes;
-          entry.name =total;
-          nameSearch.entries.push_back(entry);
-          reader.skip(1);
+    if (msg.numericCommand == 353 && client->isInNamesQuery) {
+      IrcNameSearch& nameSearch = client->nameSearch;
+      StreamReader reader(msg.parameters);
+      std::string ccl = reader.readUntil(' ');
+      reader.skip(1);
+      std::string mode = reader.readUntil(' ');
+      reader.skip(1);
+      std::string channelName = reader.readUntil(' ');
+      if (!std::count(nameSearch.channels.begin(), nameSearch.channels.end(),
+                      channelName))
+        nameSearch.channels.push_back(channelName);
+      reader.skipUntil(':', true);
+      while (reader.rem() > 0) {
+        std::string total = reader.readUntil(' ');
+        std::string modes = "";
+        while (client->isPrefix(total[0])) {
+          modes += total[0];
+          total = total.substr(1);
         }
+        IrcNameSearchEntry entry;
+        entry.channel = channelName;
+        entry.mode = modes;
+        entry.name = total;
+        nameSearch.entries.push_back(entry);
+        reader.skip(1);
+      }
     }
-    if(msg.numericCommand == 366 && client->isInNamesQuery) {
-        components->channels_popover.initFrom(client, QueryPopulateType::Names);
-        components->runLater(new std::function([this]() {
-          this->components->setActivePopover(&components->channels_popover);
-        }));
-        client->isInNamesQuery = false;
+    if (msg.numericCommand == 366 && client->isInNamesQuery) {
+      components->channels_popover.initFrom(client, QueryPopulateType::Names);
+      components->runLater(new std::function([this]() {
+        this->components->setActivePopover(&components->channels_popover);
+      }));
+      client->isInNamesQuery = false;
     }
     return;
   }
@@ -352,8 +356,11 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
     IrcChannel& ch = client->joinedChannels[chatMessage.channel];
     if (ch.type == IrcChannelType::UserChannel || ch.notify) {
       if (!AppState::gState->focused || active_channel_ptr != &ch) {
-        std::string header = ch.type == IrcChannelType::UserChannel ?
-         (ch.name + "@" + client->networkInfo.given_name) :  (chatMessage.source.getName() + " in " + ch.name + "@" + client->networkInfo.given_name);
+        std::string header =
+            ch.type == IrcChannelType::UserChannel
+                ? (ch.name + "@" + client->networkInfo.given_name)
+                : (chatMessage.source.getName() + " in " + ch.name + "@" +
+                   client->networkInfo.given_name);
         Notifications::sendNotification(header, chatMessage.content);
       }
     }
@@ -471,6 +478,10 @@ void IrcEventHandler::populateChannels(IrcClient* active) {
 }
 
 void IrcEventHandler::sendChannelMessage(std::string content) {
+#ifdef DEC_LIZ_PNG_UPLOAD
+  if (sendFiles.size())
+    uploadPngFile();
+#endif
   if (content.length() == 0)
     return;
   StreamReader reader(content);
@@ -479,7 +490,7 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
     std::string command = reader.readUntil(' ');
     std::transform(command.begin(), command.end(), command.begin(), ::toupper);
     reader.skip(1);
-    if(command == "RAW")
+    if (command == "RAW")
       switchRawMode();
     if (command == "ADDSERVER") {
       std::string host = reader.readUntil(' ');
@@ -524,10 +535,12 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
         }
       }
       addNetwork(client);
+      AppState::gState->config.saveClients(active_networks);
+
     } else if (command == "DELSERVER") {
       removeNetwork(active_network);
     } else if (command == "NOTIFY") {
-      if(active_channel_ptr) {
+      if (active_channel_ptr) {
         active_channel_ptr->notify = !active_channel_ptr->notify;
       }
     }
@@ -540,7 +553,7 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
         std::string channels = reader.readUntilEnd();
         if (command == "LIST")
           active_network->searchQuery = channels;
-        if(command == "NAMES"){
+        if (command == "NAMES") {
           active_network->isInNamesQuery = true;
           active_network->nameSearch.clear();
         }
@@ -592,23 +605,23 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
   } else {
     if (!active_network || !active_channel_ptr)
       return;
-    if(rawMode) {
+    if (rawMode) {
       active_network->write(content);
     } else {
-    while (reader.rem() > 0) {
-      IrcMessageMsg msg("PRIVMSG");
-      msg.content = reader.readUntil('\n');
-      msg.channel = active_channel_ptr->name;
-      msg.source.nick = active_network->nick;
-      msg.source.onlyHost = false;
-      IrcChannel& ch = active_network->joinedChannels[msg.channel];
-      auto& channelMessages = ch.messages;
-      channelMessages.push_back(msg);
-      auto* holder = message_state.add_message(msg, ch);
-      components->message_list.addContent(holder);
-      active_network->write(msg);
-      reader.skip(1);
-    }
+      while (reader.rem() > 0) {
+        IrcMessageMsg msg("PRIVMSG");
+        msg.content = reader.readUntil('\n');
+        msg.channel = active_channel_ptr->name;
+        msg.source.nick = active_network->nick;
+        msg.source.onlyHost = false;
+        IrcChannel& ch = active_network->joinedChannels[msg.channel];
+        auto& channelMessages = ch.messages;
+        channelMessages.push_back(msg);
+        auto* holder = message_state.add_message(msg, ch);
+        components->message_list.addContent(holder);
+        active_network->write(msg);
+        reader.skip(1);
+      }
     }
   }
 
@@ -621,7 +634,7 @@ void IrcEventHandler::loadChannel(IrcChannel* ch) {
   if (active_network != ch->client)
     active_network = ch->client;
   active_channel = ch->name;
-  
+
   activateChannel(ch);
 }
 void IrcEventHandler::itemSelected(std::string type, const SearchItem* item) {
@@ -656,17 +669,16 @@ void IrcEventHandler::renderUserList() {
   components->setActivePopover(&components->user_list);
 }
 void IrcEventHandler::query(IrcClient* cl, std::string& name) {
-    auto& joinedChannels = cl->joinedChannels;
+  auto& joinedChannels = cl->joinedChannels;
   if (joinedChannels.count(name))
     return;
   addChannel(cl, name);
 }
 void IrcEventHandler::query(std::string& name) {
-  if(active_network)
-  query(active_network, name);
+  if (active_network)
+    query(active_network, name);
 }
-void IrcEventHandler::updateActiveChannel() {
-}
+void IrcEventHandler::updateActiveChannel() {}
 
 void IrcEventHandler::activateChannel(IrcChannel* ch) {
   if (ch == nullptr) {
@@ -689,12 +701,9 @@ void IrcEventHandler::activateChannel(IrcChannel* ch) {
   active_channel = ref.name;
   active_channel_ptr = ch;
 }
-void IrcEventHandler::fetchMore() {
-}
-void IrcEventHandler::tryDelete() {
-}
-void IrcEventHandler::tryEdit() {
-}
+void IrcEventHandler::fetchMore() {}
+void IrcEventHandler::tryDelete() {}
+void IrcEventHandler::tryEdit() {}
 void IrcEventHandler::cancelEdit() {
   if (!editMode)
     return;
@@ -704,3 +713,50 @@ void IrcEventHandler::cancelEdit() {
   backupData = "";
 }
 IrcEventHandler::IrcEventHandler() : httpClient(true) {}
+#ifdef DEC_LIZ_PNG_UPLOAD
+void IrcEventHandler::uploadPngFile() {
+  std::vector<HttpFileEntry> files;
+  int c = 0;
+  for (auto* file : sendFiles) {
+    HttpFileEntry e = *file;
+    e.id = std::to_string(c);
+    e.fieldname = "datafile";
+    files.push_back(e);
+    c++;
+    delete file;
+  }
+  FormData formData = FormData::generate(files, "");
+  ix::WebSocketHttpHeaders headers;
+  DecConfig& config = AppState::gState->config;
+  headers["Authorization"] = config.getPngUploadToken();
+      headers["Content-Type"] = "multipart/form-data; boundary=----" + formData.boundary;
+  std::string url = "https://" + config.getPngUploadHost() + "/add/0";
+  auto req = httpClient.createRequest(url, "POST");
+  req->body = formData.data;
+  req->extraHeaders = headers;
+  components->chat_input.images.clear();
+  sendFiles.clear();
+  httpClient.performRequest(req, [this](const ix::HttpResponsePtr& response) {
+    auto errorCode = response->errorCode;
+    auto responseCode = response->statusCode;
+    bool success = errorCode == ix::HttpErrorCode::Ok;
+    if (success && responseCode == 200) {
+      auto payload = response->body;
+      if (payload.length() && active_network) {
+        DecConfig& config = AppState::gState->config;
+        IrcMessageMsg msg("PRIVMSG");
+        msg.content = "https://" + config.getPngUploadHost() + "/d/" + payload;
+        msg.channel = active_channel_ptr->name;
+        msg.source.nick = active_network->nick;
+        msg.source.onlyHost = false;
+        IrcChannel& ch = active_network->joinedChannels[msg.channel];
+        auto& channelMessages = ch.messages;
+        channelMessages.push_back(msg);
+        auto* holder = message_state.add_message(msg, ch);
+        components->message_list.addContent(holder);
+        active_network->write(msg);
+      }
+    }
+  });
+}
+#endif

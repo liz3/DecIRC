@@ -97,6 +97,7 @@ class IrcClient {
 
   bool useTLS = false;
   bool verifySSL = false;
+  bool autoConnect = false;
   IrcNetworkInfo networkInfo;
   std::map<std::string, IrcChannel>& getJoinedChannels() {
     return joinedChannels;

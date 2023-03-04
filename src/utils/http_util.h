@@ -9,6 +9,7 @@
 
 struct HttpFileEntry {
 	std::string name;
+	std::string fieldname;
 	std::string contentType;
 	std::string id;
 	std::vector<uint8_t> data;
@@ -42,7 +43,7 @@ public:
 		{
 			HttpFileEntry& e = entries[i];
 			data += "------" + boundary + "\n";
-			data += "Content-Disposition: form-data; name=\"files[" + e.id + "]\"; filename=\"" + e.name + "\"\n";
+			data += "Content-Disposition: form-data; name=\"" + e.fieldname + "\"; filename=\"" + e.name + "\"\n";
 			data += "Content-Type: " + e.contentType + "\n\n";
 			data += std::string(e.data.data(), e.data.data()+ e.data.size());
 			data += "\n";

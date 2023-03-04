@@ -17,6 +17,7 @@ class GLFWwindow;
 #ifndef __APPLE__
 #include <algorithm>
 #endif
+#include "utils/config.h"
 
 class AppState {
  public:
@@ -28,7 +29,7 @@ class AppState {
   uint32_t window_height = 720;
   uint32_t window_width = 1280;
   bool focused = true;
-
+  DecConfig config;
   static AppState* gState;
   OpenGLState opengl_state;
   std::filesystem::path cwd;

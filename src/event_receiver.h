@@ -121,7 +121,7 @@ void key_callback(GLFWwindow* window,
             std::vector<uint8_t> vecData(dPtr, dPtr + size.size);
 #endif
             HttpFileEntry* e = new HttpFileEntry();
-            *e = {"unknown.png", "image/png", "", vecData};
+            *e = {"unknown.png", "", "image/png", "", vecData};
             st->client->sendFiles.push_back(e);
             return;
           }
