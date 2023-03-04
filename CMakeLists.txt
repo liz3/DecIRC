@@ -30,6 +30,7 @@ set(DISABLE_PACKAGE_CONFIG_AND_INSTALL ON)
 set(SKIP_INSTALL_ALL ON)
 set(IXWEBSOCKET_INSTALL OFF)
 set(MBEDTLS_VERSION_GREATER_THAN_3 ON)
+set(FT_WITH_PNG ON)
 
 set(DEC_SOURCES src/irc/irc_socket.cc src/irc/irc_client.cc src/irc/irc_pool.cc src/rendering/opengl_state.cc src/rendering/glad.c src/rendering/font_atlas.cc src/gui_components.cc src/AppState.cc src/rendering/text_box.cc src/rendering/la.cc src/rendering/text.cc src/rendering/shader.cc src/components/search_list.cc src/main.cc src/components/user_info.cc src/components/user_list.cc src/components/channel_list.cc src/components/text_field.cc src/components/message_list.cc src/irc/irc_event_handler.cc src/irc/image_cache.cc src/irc/message_state.cc third-party/png/lodepng.cpp third-party/gifdec/gifdec.c src/components/image_overlay.cc src/utils/notifications.cc)
 
@@ -50,7 +51,20 @@ target_include_directories(dec PRIVATE third-party/json)
 target_include_directories(dec PRIVATE third-party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third-party/zlib)
 
 add_subdirectory(third-party/zlib)
-set(ZLIB_LIBRARY zlib)
+set(ZLIB_LIBRARY zlibstatic)
+set(ZLIB_LIBRARIES zlibstatic)
+set(ZLIB_INCLUDE_DIRS  ${CMAKE_CURRENT_SOURCE_DIR}/third-party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third-party/zlib)
+set(ZLIB_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third-party/zlib ${CMAKE_CURRENT_BINARY_DIR}/third-party/zlib)
+
+
+add_subdirectory(third-party/lpng1639)
+set(PNG_LIBRARIES png_static)
+set(PNG_LIBRARY png_static)
+set(PNG_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lpng1639 ${CMAKE_CURRENT_BINARY_DIR}/third-party/lpng1639/)
+set(PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lpng1639 ${CMAKE_CURRENT_BINARY_DIR}/third-party/lpng1639/)
+set(PNG_PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lpng1639 ${CMAKE_CURRENT_BINARY_DIR}/third-party/lpng1639/)
+
+
 
 add_subdirectory(third-party/mbedtls)
 set(MBEDTLS_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third-party/mbedtls/include)
@@ -69,9 +83,9 @@ if(APPLE)
   add_definitions(-DDEC_MAC_PATH_BASE)
 endif()
 if(WIN32)
-  target_link_libraries(dec PUBLIC glfw freetype zlib ixwebsocket webp libjpeg ws2_32 crypt32)
+  target_link_libraries(dec PUBLIC glfw freetype ixwebsocket webp libjpeg ws2_32 crypt32)
 else()
-  target_link_libraries(dec PUBLIC glfw freetype zlib ixwebsocket webp libjpeg)
+  target_link_libraries(dec PUBLIC glfw freetype ixwebsocket webp libjpeg)
 endif()
 file(COPY assets DESTINATION .)
 #set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
