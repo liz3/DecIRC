@@ -23,7 +23,7 @@ void IrcEventHandler::init(GuiComponents* components) {
   t->components->runLater(new std::function(
       [t]() { t->components->status_text.setData("Ready"); }));
   connecting = true;
-  auto& loadedNetworks = AppState::gState->config.loadClients();
+  auto loadedNetworks = AppState::gState->config.loadClients();
   for (auto* n : loadedNetworks)
     addNetwork(n);
   // infstream.zalloc = Z_NULL;
