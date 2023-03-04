@@ -1,6 +1,7 @@
 #include "irc_event_handler.h"
 #include "../gui_components.h"
 #include "../utils/notifications.h"
+#include "irc_client.h"
 
 IrcEventHandler* create_irc_event_handler() {
 #ifdef _WIN32
@@ -349,9 +350,10 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
     }
 
     IrcChannel& ch = client->joinedChannels[chatMessage.channel];
-    if (ch.type == IrcChannelType::UserChannel) {
-      if (!AppState::gState->focused) {
-        std::string header = ch.name + "@" + client->networkInfo.given_name;
+    if (ch.type == IrcChannelType::UserChannel || ch.notify) {
+      if (!AppState::gState->focused || active_channel_ptr != &ch) {
+        std::string header = ch.type == IrcChannelType::UserChannel ?
+         (ch.name + "@" + client->networkInfo.given_name) :  (chatMessage.source.getName() + " in " + ch.name + "@" + client->networkInfo.given_name);
         Notifications::sendNotification(header, chatMessage.content);
       }
     }
@@ -524,6 +526,10 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
       addNetwork(client);
     } else if (command == "DELSERVER") {
       removeNetwork(active_network);
+    } else if (command == "NOTIFY") {
+      if(active_channel_ptr) {
+        active_channel_ptr->notify = !active_channel_ptr->notify;
+      }
     }
     if (active_network) {
       if (command == "DISCONNECT" || command == "QUIT") {

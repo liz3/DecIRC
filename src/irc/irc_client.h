@@ -20,6 +20,7 @@ struct IrcChannel {
   std::string id;
   std::string name;
   std::string topic;
+  bool notify = false;
   IrcClient* client;
   IrcChannelType type;
   std::vector<IrcMessageMsg> messages;

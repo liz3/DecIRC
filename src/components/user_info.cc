@@ -44,7 +44,7 @@ void UserInfo::render(float x, float y, float w, float h) {
   x = abs.x;
   y = abs.y;
 
-  Box::render(x, y, w, -h, vec4f(0, 0, 0, 1));
+  Box::render(x, y, w, -h, vec4f(0.1, 0.1, 0.15, 1));
   auto atlas_height = AppState::gState->atlas.effective_atlas_height;
   float xOffset = 0;
   if (user_image != nullptr) {
