@@ -8,6 +8,12 @@ a grey area seamed and is a lot of fun.
 ## About
 DecIRC(the name "Dec" still comes from the discord times) is a WIP c++ client for IRC written to directly target OpenGL, it has a very very basic but working GUI framework for rendering: rectangles, text, images and so on. Doing that anything relating to the UI is custom implemented, which means its very rudimentary but also fast.
 The controls are entirely keyboard based for now.
+
+![image](https://github.com/liz3/DecIRC/blob/irc/screenshots/screenshot1.png?raw=true)
+![image](https://github.com/liz3/DecIRC/blob/irc/screenshots/screenshot2.png?raw=true)
+![image](https://github.com/liz3/DecIRC/blob/irc/screenshots/screenshot3.png?raw=true)
+
+
 ## Building
 You will need a c++17 capable c/c++ compiler and cmake.  
 Dec vendors all its dependencies through submodules, so building will take a moment.
