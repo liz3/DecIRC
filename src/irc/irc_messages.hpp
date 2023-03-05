@@ -1,10 +1,13 @@
 #ifndef DEC_IRC_MESSAGES_HPP
 #define DEC_IRC_MESSAGES_HPP
+#include <stdint.h>
 #include <string>
 #include <vector>
 #include <iostream>
 #include "stream_reader.h"
 #include "IncomingMessage.h"
+#define __STDC_WANT_LIB_EXT1__ 1
+#include <time.h>
 
 class IrcMessage {
  public:
@@ -114,11 +117,14 @@ class IrcMessageMsg : public IrcMessage {
     command = cmd;
     numericCode = false;
     direction = IrcMessageDirection::Both;
+    setTime();
   }
+
   IrcMessageMsg(std::string cmd, bool numeric) {
     command = cmd;
     numericCode = numeric;
     direction = IrcMessageDirection::Both;
+    setTime();
   }
   void build(std::vector<std::string>& into) override {
     into.push_back(channel);
@@ -131,6 +137,11 @@ class IrcMessageMsg : public IrcMessage {
       into.push_back(msg);
     } else
       into.push_back(":" + content);
+  }
+  std::string getTimeFormatted() {
+     char buffer [80];
+       strftime (buffer,sizeof buffer,"%R",&time_storage);
+    return std::string(buffer, strlen(buffer));
   }
   bool fromParts(const std::string& input) override {
     StreamReader reader(input);
@@ -160,6 +171,9 @@ class IrcMessageMsg : public IrcMessage {
     }
     return true;
   }
+   std::time_t rawtime;
+   struct std::tm * timeinfo;
+    std::tm time_storage;
   size_t type = 0;
   bool numericCode;
   Source source;
@@ -168,5 +182,11 @@ class IrcMessageMsg : public IrcMessage {
   bool action = false;
 
  private:
+    void setTime() {
+    rawtime = std::time(nullptr);
+
+     localtime_s(&time_storage, &rawtime);
+
+    }
 };
 #endif

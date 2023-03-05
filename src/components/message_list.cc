@@ -76,7 +76,20 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
   }
   title_box.render(x, y, 0, 0);
   // y -= atlas_height;
-  box.render(x + 300, y, w - 300, 0);
+  size_t offset = 300;
+
+  box.render(x + offset, y, w - offset, 0);
+    if(selected) {
+    TextWithState timeState(m_holder->message.getTimeFormatted());
+    TextBox timeBox(timeState);
+    timeBox.color = vec4fs(0.6);
+    timeBox.scale = 0.6;
+    timeBox.style = "bold";
+  
+    Box::render((x+w)-75, y, 70, atlas_height * 0.6, vec4f(0.1, 0.1, 0.1, 1));
+    timeBox.render((x+w)-70, y+5, 70, 0);
+   
+  }
   y -= (content_height);
   //   if(m_holder->message.edited_timestamp.length()) {
   //       y -= atlas_height;
