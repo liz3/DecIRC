@@ -172,7 +172,6 @@ class IrcMessageMsg : public IrcMessage {
     return true;
   }
    std::time_t rawtime;
-   struct std::tm * timeinfo;
     std::tm time_storage;
   size_t type = 0;
   bool numericCode;
@@ -184,8 +183,11 @@ class IrcMessageMsg : public IrcMessage {
  private:
     void setTime() {
     rawtime = std::time(nullptr);
-
+    #ifdef _WIN32
      localtime_s(&time_storage, &rawtime);
+     #else
+       localtime_r( &rawtime, (struct std::tm*)(&time_storage));
+     #endif
 
     }
 };
