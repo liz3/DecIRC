@@ -14,9 +14,9 @@ ShellExecute(0, 0, url.c_str(), 0, 0 , SW_SHOW );
 std::string cmd = "open " + url;
 system(cmd.c_str());
 #endif
-#ifdef __LINUX__
+#ifdef __linux__
 std::string cmd = "xdg-open " + url;
-system(cmd);
+system(cmd.c_str());
 #endif
 }
 

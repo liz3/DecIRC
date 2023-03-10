@@ -16,6 +16,7 @@ The controls are entirely keyboard based for now.
 
 ## Building
 You will need a c++17 capable c/c++ compiler and cmake.  
+On Gnu/Linux you will need glib2, gio2 and gdk-pixbuf since libnotify uses them.
 Dec vendors all its dependencies through submodules, so building will take a moment.
 
 Dec should build natively on all 3 big platforms with clang, gcc and msvc.
@@ -40,7 +41,7 @@ run the executable!
 * Adding and connecting to networks, no SASL support yet.
 * Query, names, list, msg, join, part, whois are the commands which have basic implementations, most of which come with ui abstractions.
 * a raw mode which is basically telnet with the ircd for everything missing(a lot).
-* native integration with Mac and windows notification centers, the xdg equivalent will come but i also wanna do wayland and im a bit scared of the effort that will be.
+* native integration with Mac and windows and Gnu/linux(freedesktop notification over libnotify) notification centers
 
 ## Dec Specific commands
 ```
@@ -105,6 +106,9 @@ Since this is a bare bones project there are a couple of deps used, here they ar
 * [libjpeg](http://libjpeg.sourceforge.net/) - jpeg decoder
 * [libwebp](https://chromium.googlesource.com/webm/libwebp) - webp decoder.
 * [lodepng](https://github.com/lvandeve/lodepng) - PNG decoder
+* [wintoast](https://github.com/mohabouje/WinToast) - small api wrapper around windows notifications.
+* [libpng](http://www.libpng.org/pub/png/libpng.html) - Yes, its a second png decoder. I needed to include this because freetype2 requires it for png fonts, freetype please add a option to use lodepng...
+* [libnotify](https://gitlab.gnome.org/GNOME/libnotify) - Wrapper around freedesktop Notifications. I ported this lib to cmake.
 
 ## LICENSE 
 The source of dec is free software under GPL 2.0, the deps might have own licenses.

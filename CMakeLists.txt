@@ -31,6 +31,7 @@ set(SKIP_INSTALL_ALL ON)
 set(IXWEBSOCKET_INSTALL OFF)
 set(MBEDTLS_VERSION_GREATER_THAN_3 ON)
 set(FT_WITH_PNG ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(DEC_SOURCES src/irc/irc_socket.cc 
   src/irc/irc_client.cc src/irc/irc_pool.cc 
@@ -105,6 +106,19 @@ if(WIN32)
   target_link_libraries(DecIrc PUBLIC glfw freetype ixwebsocket webp libjpeg ws2_32 crypt32)
 else()
   target_link_libraries(DecIrc PUBLIC glfw freetype ixwebsocket webp libjpeg)
+endif()
+
+if(UNIX)
+   find_package(PkgConfig REQUIRED) # Include functions provided by PkgConfig module.
+
+ add_subdirectory(third-party/libnotify)
+target_include_directories(DecIrc PRIVATE third-party/libnotify)
+target_link_libraries(DecIrc PUBLIC libnotify)
+  pkg_check_modules(GLIB REQUIRED glib-2.0) 
+  target_include_directories(DecIrc PRIVATE ${GLIB_INCLUDE_DIRS})
+    pkg_check_modules(PIXBUF REQUIRED gdk-pixbuf-2.0) 
+target_include_directories(DecIrc PRIVATE ${PIXBUF_INCLUDE_DIRS})
+
 endif()
 file(COPY assets DESTINATION .)
 #set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")

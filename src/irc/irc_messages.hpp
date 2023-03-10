@@ -6,7 +6,10 @@
 #include <iostream>
 #include "stream_reader.h"
 #include "IncomingMessage.h"
-#define __STDC_WANT_LIB_EXT1__ 1
+#ifdef __linux__
+#include <ctime>
+#include <cstring>
+#endif
 #include <time.h>
 
 class IrcMessage {
