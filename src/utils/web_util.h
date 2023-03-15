@@ -11,7 +11,7 @@ void dec_open_in_browser(std::string& url) {
 ShellExecute(0, 0, url.c_str(), 0, 0 , SW_SHOW );
 #endif
 #ifdef __APPLE__
-std::string cmd = "open " + url;
+std::string cmd = "open \"" + url + "\"";
 system(cmd.c_str());
 #endif
 #ifdef __linux__

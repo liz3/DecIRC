@@ -267,8 +267,7 @@ RenderMessage::RenderMessage(MessageHolder* holder)
         std::string link = start.substr(0, i);
         if(isImage(link))
           fetchImage(link);
-        else
-            links.push_back(link);
+        links.push_back(link);
         cpy = start.substr(i);
         break;
       }
@@ -276,8 +275,7 @@ RenderMessage::RenderMessage(MessageHolder* holder)
     if (!f) {
       if(isImage(start))
         fetchImage(start);
-      else
-        links.push_back(start);
+      links.push_back(start);
       break;
     }
   }
