@@ -1,6 +1,5 @@
 #ifndef DEC_APP_STATE
 #define DEC_APP_STATE
-#include "utils/notifications.h"
 class GuiComponents;
 class TextReceiver;
 class GLFWwindow;
