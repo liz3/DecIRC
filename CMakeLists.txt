@@ -108,7 +108,7 @@ else()
   target_link_libraries(DecIrc PUBLIC glfw freetype ixwebsocket webp libjpeg)
 endif()
 
-if(UNIX)
+if(UNIX AND NOT APPLE)
    find_package(PkgConfig REQUIRED) # Include functions provided by PkgConfig module.
 
  add_subdirectory(third-party/libnotify)

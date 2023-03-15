@@ -55,6 +55,7 @@ class RenderMessage : public TextReceiver {
              int scancode,
              int action,
              int mods) override;
+  bool isImage(std::string& url);
 
   void addText(std::string text) override;
   std::string getText() override;

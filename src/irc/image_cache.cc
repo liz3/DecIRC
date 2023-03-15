@@ -76,37 +76,7 @@ void ImageCache::fetchImage(std::string url,
   });
 }
 Image* ImageCache::getEmote(std::string id) {
-  if (emotes.count(id))
-    return emotes[id];
-  if (!pending_emotes.count(id)) {
-    pending_emotes[id] = true;
-    std::string url = "https://cdn.discordapp.com/emojis/" + id +
-                      ".png?size=240&quality=lossless";
-    auto req = httpClient.createRequest(url, "GET");
-    std::cout << "fetching emote: " << url << "\n";
-    auto* t = this;
-    httpClient.performRequest(req, [t,
-                                    id](const ix::HttpResponsePtr& response) {
-      auto errorCode = response->errorCode;
-      auto responseCode = response->statusCode;
-      bool success = errorCode == ix::HttpErrorCode::Ok && responseCode == 200;
-      t->pending_emotes.erase(id);
-      if (!success) {
-        std::cout << "emote fetch failed?\n";
-      } else {
-        std::string& p = response->body;
-        std::vector<uint8_t>* in =
-            new std::vector<uint8_t>(p.c_str(), p.c_str() + p.length());
 
-        AppState::gState->components->runLater(new std::function([in, id, t]() {
-          Image* img = new Image();
-          img->init_from_mem(*in);
-          t->emotes[id] = img;
-          delete in;
-        }));
-      }
-    });
-  }
   return nullptr;
 }
 void ImageCache::reportDead(void* ptr) {

@@ -1,5 +1,6 @@
 #ifndef DEC_IMAGE
 #define DEC_IMAGE
+#include <cstdio>
 #include <string>
 #include <vector>
 #include "../../third-party/png/lodepng.h"
@@ -11,13 +12,38 @@
 
 class Image {
  public:
+  ImageType type;
   std::vector<unsigned char> data;
+  bool decoded = false;
+  bool canBeDecoded = true;
+  std::vector<unsigned char> encodedData;
   unsigned width, height;
   GLuint tex_id;
   ShaderInstance* m_shader;
   bool valid = false;
-
+  ~Image() {
+    remove();
+  }
   void init() {
+    if (valid)
+      return;
+    if (!this->decoded && canBeDecoded) {
+      switch (type) {
+        case Png:
+          init_from_mem_png(encodedData);
+          break;
+        case Jpg:
+          init_from_mem_jpeg(encodedData);
+          break;
+        case Webp:
+          init_from_mem_webp(encodedData);
+          break;
+        case Gif:
+          init_from_mem_gif(encodedData);
+        default:
+          break;
+      }
+    }
     valid = true;
     glGenTextures(1, &tex_id);
     glActiveTexture(GL_TEXTURE0);
@@ -34,7 +60,16 @@ class Image {
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_RGBA,
                     GL_UNSIGNED_BYTE, &data[0]);
   }
-
+  void unref() {
+    if (!valid)
+      return;
+    valid = false;
+    glDeleteTextures(1, &tex_id);
+    if(!canBeDecoded)
+      return;
+    data.clear();
+    decoded = false;
+  }
   void remove() {
     if (!valid)
       return;
@@ -42,22 +77,26 @@ class Image {
     std::cout << "destroying\n";
     valid = false;
   }
-  Image(std::string path) {
-    unsigned error = lodepng::decode(data, width, height, path);
-    init();
-  }
+
   Image(std::vector<uint8_t> data, unsigned w, unsigned h) {
+    decoded = true;
+    canBeDecoded = false;
     this->data = data;
     width = w;
     height = h;
     init();
   }
   Image() {}
+  void maybe_copy(std::vector<unsigned char>& content) {
+    if (encodedData.size())
+      return;
+    encodedData = content;
+  }
 
   Image(ImageCacheEntry* entry) {
     switch (entry->type) {
       case Png:
-        init_from_mem(entry->data);
+        init_from_mem_png(entry->data);
         break;
       case Jpg:
         init_from_mem_jpeg(entry->data);
@@ -72,23 +111,32 @@ class Image {
     }
   }
   void init_from_mem_webp(std::vector<unsigned char>& content) {
-    if (valid)
+    if (this->decoded)
       return;
+    maybe_copy(content);
     uint8_t* decoded = WebPDecodeRGBA(&content[0], content.size(), (int*)&width,
                                       (int*)&height);
     data.insert(data.begin(), decoded, decoded + (width * height * 4));
+    type = ImageType::Webp;
+    this->decoded = true;
     delete decoded;
     init();
   }
 
-  void init_from_mem(std::vector<unsigned char>& content) {
-    if (valid)
+  void init_from_mem_png(std::vector<unsigned char>& content) {
+    if (decoded)
       return;
+    maybe_copy(content);
     unsigned error = lodepng::decode(data, width, height, content);
+    type = ImageType::Png;
+    decoded = true;
     init();
   }
 
   void init_from_mem_gif(std::vector<unsigned char>& content) {
+    if (decoded)
+      return;
+    maybe_copy(content);
     gd_GIF* gif = gd_open_gif(content.data(), content.size());
     width = gif->width;
     height = gif->height;
@@ -122,10 +170,15 @@ class Image {
     }
     gd_close_gif(gif);
     delete[] pixel_buff;
+    type = ImageType::Gif;
+    decoded = true;
     init();
   }
 
   void init_from_mem_jpeg(std::vector<unsigned char>& content) {
+    if (decoded)
+      return;
+    maybe_copy(content);
     int rc;
     jpeg_decompress_struct cinfo;
     jpeg_error_mgr jerr;
@@ -172,10 +225,14 @@ class Image {
 
     jpeg_destroy_decompress(&cinfo);
     delete[] pixel_buff;
+    type = ImageType::Jpg;
+    this->decoded = true;
     init();
   }
 
   void render(int x, int y, float scale) {
+    if (!valid)
+      init();
     m_shader = AppState::gState->opengl_state.image_shader;
     SimpleEntry entry = {vec2f(x, y), vec2f(width * scale, height * scale)};
     m_shader->shader.use();

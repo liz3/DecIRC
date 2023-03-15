@@ -43,7 +43,7 @@ class ChatInput : public TextField {
         existing.push_back(e);
         if (!images.count(e)) {
           Image* img = new Image();
-          img->init_from_mem(e->data);
+          img->init_from_mem_png(e->data);
           images[e] = img;
           std::cout << "adding new image\n";
         }

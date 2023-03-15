@@ -63,7 +63,6 @@ class GuiComponents {
       Component* comp = dynamic_cast<Component*>(active_popover);
       if (comp && comp->canFocus())
         comp->onFocus(false);
-      state->setTextReceiver(&chat_input);
     }
 
     active_popover = c;

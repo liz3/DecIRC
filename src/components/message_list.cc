@@ -52,11 +52,10 @@ void RenderMessage::disposeImages() {
   if (!initiatedLoading)
     return;
   for (auto*& image : images) {
-    image->remove();
-    delete image;
+    image->unref();
+ 
   }
   initiatedLoading = false;
-  images.clear();
 }
 void RenderMessage::fetchImages() {
   if (initiatedLoading)
@@ -91,57 +90,19 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
    
   }
   y -= (content_height);
-  //   if(m_holder->message.edited_timestamp.length()) {
-  //       y -= atlas_height;
 
-  //   TextWithState edited;
-  //   TextBox edit_box(edited);
-  //   edited.setData("edited");
-  //   edit_box.color = vec4f(0.4,0.4,0.4, 1);
-  //   edit_box.scale = 0.6;
-  //   edit_box.render(x+50, y, 0,0);
-  //   y -= (atlas_height * 0.6);
-  // }
-  for (auto* em : embeds) {
-    y -= 15 + atlas_height;
-    em->render(x + 70, y, w - 20);
-    y -= (em->height);
-  }
   for (auto* image : images) {
     auto h = image->height;
     float scale = 1;
-    if (image->width > w) {
-      float ww = w > 650.0 ? 650.0 : w;
+    if (image->width > w - offset) {
+      float ww = w - offset > 650.0 ? 650.0 : w - offset;
       scale = ww / image->width;
     }
-    y -= 15;
-    image->render(x + 50, -y, scale);
+    y -= 10;
+    image->render(x + offset, -y, scale);
 
     y -= h * scale;
   }
-  y -= (20 + atlas_height);
-  auto baseOffset = x + 50;
-  // for (auto& reaction : m_holder->message.reactions) {
-  //     if (!reaction.second.emote_id.length())
-  //         continue;
-  //   auto* img = AppState::gState->client->image_cache.getEmote(
-  //       reaction.second.emote_id);
-  //   auto& atlas = AppState::gState->atlas;
-  //   if (img) {
-  //     float imgScale = (atlas_height * 0.8) / (float)img->width;
-  //     std::string num_text = std::to_string(reaction.second.count);
-  //     TextWithState ts(num_text);
-  //     TextBox num_b(ts);
-  //     auto textWidth = atlas.getAdvance(ts.data);
-  //     Box::render(baseOffset - 3, y - 3, atlas_height + 5 + textWidth + 3,
-  //                 atlas_height + 3, vec4f(0, 0, 0, 1));
-  //     img->render(baseOffset, -y - atlas_height + (atlas_height * 0.2),
-  //                 imgScale);
-  //     baseOffset += atlas_height + 5;
-  //     num_b.render(baseOffset, y, 0, 0);
-  //     baseOffset += textWidth + 15;
-  //   }
-  // }
 }
 RenderMessage* MessageList::addContent(MessageHolder* content, bool prepend) {
   RenderMessage* msg = new RenderMessage(content);
@@ -252,7 +213,14 @@ void MessageList::selectIndex(int32_t diff) {
   int32_t selected_i = messages.size() - selected_index - 1;
   AppState::gState->setTextReceiver(messages[selected_i]);
 }
+bool RenderMessage::isImage(std::string& url) {
+  for(const auto& entry : {".png", ".jpeg", ".jpg", ".webp", ".gif"}) {
+    if(url.find(entry) != std::string::npos)
+      return true;
+  }
 
+  return false;
+}
 RenderMessage::RenderMessage(MessageHolder* holder)
     : m_holder(holder), box(text), title_box(title) {
   box.allowGrow = true;
@@ -297,13 +265,19 @@ RenderMessage::RenderMessage(MessageHolder* holder)
       if (i != std::string::npos) {
         f = true;
         std::string link = start.substr(0, i);
-        links.push_back(link);
+        if(isImage(link))
+          fetchImage(link);
+        else
+            links.push_back(link);
         cpy = start.substr(i);
         break;
       }
     }
     if (!f) {
-      links.push_back(start);
+      if(isImage(start))
+        fetchImage(start);
+      else
+        links.push_back(start);
       break;
     }
   }
@@ -349,8 +323,14 @@ int RenderMessage::getHeight(float w, float ah) {
   // if(m_holder->message.edited_timestamp.length())
   //   base += (ah * 0.6) + ah;
 
-  for (auto* em : embeds) {
-    base += em->getHeight(w - 70, ah) + 15;
+  for (auto* image : images) {
+       auto h = image->height;
+    float scale = 1;
+    if (image->width > w - 300) {
+      float ww = w - 300 > 650.0 ? 650.0 : w - 300;
+      scale = ww / image->width;
+    }  
+    base += (h * scale) + 10;
   }
   // for (std::map<std::string, DiscordMessageAttachment>::iterator it =
   //          m_holder->message.attachments.begin();

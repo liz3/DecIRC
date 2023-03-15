@@ -30,12 +30,12 @@ void ImageOverlay::render(float width, float height) {
 }
 
 void ImageOverlay::initFrom(Image* src) {
-  if (image == nullptr)
-    image = new Image();
-  if (image->valid)
-    image->remove();
-  image->data = src->data;
-  image->width = src->width;
-  image->height = src->height;
-  image->init();
+
+  if(!src->decoded) {
+    src->init();
+  }
+  if(image) {
+    delete image;
+  }
+  image = new Image(src->data, src->width, src->height);
 }
