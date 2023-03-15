@@ -24,6 +24,30 @@ Vec4f TextWithState::getCursorPosition() {
   }
   return vec4f(x, y, lastX, 0);
 }
+void TextWithState::moveUp() {
+  if(text_x == 0)
+    return;
+;
+  for(int i = text_x-1; i >= 0; i--) {
+    if(data[i] == (char)'\n') {
+      text_x = i;
+      return;
+    }
+  }
+}
+void TextWithState::moveDown() {
+  if(text_x == data.size())
+    return;
+
+
+  for(int i = text_x+1; i < data.size(); i++) {
+    if(data[i] == (char)'\n') {
+      text_x = i;
+      return;
+    }
+  }
+  text_x = data.size();
+}
 void TextWithState::append(int32_t code) {
   data.insert(data.begin() + text_x, code);
   text_x++;

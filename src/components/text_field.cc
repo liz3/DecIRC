@@ -39,6 +39,10 @@ void TextField::onKey(GLFWwindow* window,
       text.moveLeft();
     } else if (key == GLFW_KEY_RIGHT) {
       text.moveRight();
+    } else if (key == GLFW_KEY_UP) {
+      text.moveUp();
+    } else if (key == GLFW_KEY_DOWN) {
+      text.moveDown();
     } else if (key == GLFW_KEY_K && ctrl_pressed) {
       text.clearData();
     }
