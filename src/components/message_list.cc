@@ -31,16 +31,16 @@ void MessageList::render(float x, float y, float w, float h) {
   for (auto* msg : messages) {
     auto end = msg->start + msg->height;
     i++;
-    if (end < currentOffset) {
+    if (end < current_offset) {
       msg->disposeImages();
       continue;
     }
-    if (msg->start > currentOffset + availableHeight) {
+    if (msg->start > current_offset + available_height) {
       msg->disposeImages();
       continue;
     }
     if (!start) {
-      offset = -(currentOffset - msg->start);
+      offset = -(current_offset - msg->start);
       start = true;
     }
     msg->fetchImages();
@@ -49,18 +49,18 @@ void MessageList::render(float x, float y, float w, float h) {
   }
 }
 void RenderMessage::disposeImages() {
-  if (!initiatedLoading)
+  if (!initial_loading)
     return;
   for (auto*& image : images) {
     image->unref();
  
   }
-  initiatedLoading = false;
+  initial_loading = false;
 }
 void RenderMessage::fetchImages() {
-  if (initiatedLoading)
+  if (initial_loading)
     return;
-  initiatedLoading = true;
+  initial_loading = true;
   //   for (std::map<std::string, DiscordMessageAttachment>::iterator it =
   //          m_holder->message.attachments.begin();
   //      it != m_holder->message.attachments.end(); ++it) {
@@ -109,7 +109,7 @@ RenderMessage* MessageList::addContent(MessageHolder* content, bool prepend) {
   if (prepend) {
     float atlas_height = AppState::gState->atlas.effective_atlas_height;
     messages.insert(messages.begin(), msg);
-    currentOffset += (msg->getHeight(width, atlas_height)) + atlas_height + 45;
+    current_offset += (msg->getHeight(width, atlas_height)) + atlas_height + 45;
     if (selected_index != -1)
       selected_index--;
   } else {
@@ -122,7 +122,7 @@ RenderMessage* MessageList::addContent(MessageHolder* content, bool prepend) {
   return msg;
 }
 void MessageList::setAvailableHeight(float y) {
-  availableHeight = y;
+  available_height = y;
   recomputeHeights();
 }
 void MessageList::updateEntry(MessageHolder* h) {
@@ -150,7 +150,7 @@ void MessageList::removeEntry(MessageHolder* h) {
 }
 void MessageList::recomputeHeights() {
   float current = 0.0;
-  bool bottom = currentOffset == height - availableHeight && currentOffset != 0;
+  bool bottom = current_offset == height - available_height && current_offset != 0;
   float atlas_height = AppState::gState->atlas.effective_atlas_height;
   for (auto* e : messages) {
     float lHeight = (e->getHeight(width, atlas_height)) + 15;
@@ -161,32 +161,32 @@ void MessageList::recomputeHeights() {
   }
 
   height = current;
-  if (height < availableHeight) {
-    currentOffset = 0.0;
+  if (height < available_height) {
+    current_offset = 0.0;
   } else {
     if (bottom) {
-      currentOffset = height - availableHeight;
+      current_offset = height - available_height;
     }
   }
 }
 void MessageList::scrollEnd() {
-  currentOffset = height - availableHeight;
+  current_offset = height - available_height;
 }
 void MessageList::setWidth(float width) {
   this->width = width;
   recomputeHeights();
 }
 void MessageList::changeScroll(float offset) {
-  auto out = currentOffset + offset;
+  auto out = current_offset + offset;
   if (out <= 0) {
-    if (currentOffset == 0) {
+    if (current_offset == 0) {
       AppState::gState->client->fetchMore();
     }
-    currentOffset = 0.0;
-  } else if (out > height - availableHeight) {
-    currentOffset = height - availableHeight;
+    current_offset = 0.0;
+  } else if (out > height - available_height) {
+    current_offset = height - available_height;
   } else {
-    currentOffset = out;
+    current_offset = out;
   }
 }
 void MessageList::clearList() {

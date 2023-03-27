@@ -24,9 +24,9 @@ class ChannelList : public Popover, public Component {
   void render(float width, float height) override;
 
   void initFrom(IrcClient* client, QueryPopulateType what);
-  SearchList searchList;
-  TextWithState queryText;
-  TextBox queryBox;
+  SearchList search_list;
+  TextWithState query_text;
+  TextBox query_box;
 
  private:
   std::vector<SearchItem> items;

@@ -44,7 +44,7 @@ class RenderMessage : public TextReceiver {
   void fetchImage(std::string url);
   void fetchImages();
   void disposeImages();
-  bool initiatedLoading = false;
+  bool initial_loading = false;
   bool canFocus() override;
   void onFocus(bool focus) override;
   void render(float x, float y, float w, float h) override;
@@ -65,8 +65,8 @@ class MessageList : public Component {
  public:
   std::vector<RenderMessage*> messages;
   float height = 0.0;
-  float currentOffset = 0.0;
-  float availableHeight = 0.0;
+  float current_offset = 0.0;
+  float available_height = 0.0;
   float width = 500;
   int32_t selected_index = -1;
   RenderMessage* addContent(MessageHolder* h, bool prepend = false);

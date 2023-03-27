@@ -10,7 +10,7 @@ void TextField::onFocus(bool focus) {
   box.renderCursor = focus;
 }
 void TextField::onEnter() {
-  enterCb(text.getUtf8Value());
+  enter_cb(text.getUtf8Value());
 }
 void TextField::render(float x, float y, float w, float h) {
   auto absolute = AppState::gState->getPositionAbsolute(x, y, w, h);
@@ -19,18 +19,18 @@ void TextField::render(float x, float y, float w, float h) {
 
 void TextField::onCodePoint(int32_t cp) {
   text.append(cp);
-  if (hasChangeCb)
-    onChangeCb(text.getUtf8Value());
+  if (has_change_cb)
+    on_change_cb(text.getUtf8Value());
 }
 void TextField::onKey(GLFWwindow* window,
                       int key,
                       int scancode,
                       int action,
                       int mods) {
-  bool isPress = action == GLFW_PRESS || action == GLFW_REPEAT;
+  bool is_press = action == GLFW_PRESS || action == GLFW_REPEAT;
   bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
                       glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
-  if (isPress) {
+  if (is_press) {
     if (key == GLFW_KEY_BACKSPACE) {
       text.remove();
     } else if (key == GLFW_KEY_ENTER) {
@@ -55,6 +55,6 @@ std::string TextField::getText() {
   return text.getUtf8Value();
 }
 void TextField::setOnChangeCb(const OnEnterCallback& cb) {
-  hasChangeCb = true;
-  onChangeCb = cb;
+  has_change_cb = true;
+  on_change_cb = cb;
 }

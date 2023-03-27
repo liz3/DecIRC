@@ -8,7 +8,7 @@ void GuiComponents::init() {
   chat_input.list = &message_list;
   status_text.setData("Ready");
   auto* t = this;
-  chat_input.enterCb = [t](std::string data) {
+  chat_input.enter_cb = [t](std::string data) {
     t->state->client->sendChannelMessage(data);
   };
   header_comp.background = vec4f(0.2, 0.2, 0.2, 1);

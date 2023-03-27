@@ -1,9 +1,9 @@
 #include "channel_list.h"
 #include "../AppState.h"
 
-ChannelList::ChannelList() : queryBox(queryText) {
-  queryBox.color = vec4fs(0.8);
-  searchList.setCallback([this](const SearchItem* item) {
+ChannelList::ChannelList() : query_box(query_text) {
+  query_box.color = vec4fs(0.8);
+  search_list.setCallback([this](const SearchItem* item) {
     if (network) {
       if(mode == List) {
  IrcChannelSearchEntry* e =
@@ -25,7 +25,7 @@ bool ChannelList::canFocus() {
 }
 void ChannelList::onFocus(bool focus) {
   if (focus)
-    AppState::gState->setTextReceiver(&searchList);
+    AppState::gState->setTextReceiver(&search_list);
   else
     network = nullptr;
 }
@@ -39,10 +39,10 @@ void ChannelList::render(float width, float height) {
   auto abs = AppState::gState->getPositionAbsolute(x, y, 0, 0);
   Box::render(abs.x, abs.y, render_width - x, -(render_height - y),
               vec4f(0.1, 0.1, 0.15, 1));
-  if (queryText.data.size())
-    queryBox.render(abs.x, abs.y - atlas_height, render_width - x,
+  if (query_text.data.size())
+    query_box.render(abs.x, abs.y - atlas_height, render_width - x,
                     atlas_height + 10);
-  searchList.render(x, y + ((atlas_height * 2) + 45), render_width - x,
+  search_list.render(x, y + ((atlas_height * 2) + 45), render_width - x,
                     render_height - (atlas_height * 2) - 65 - y);
 }
 void ChannelList::initFrom(IrcClient* client, QueryPopulateType type) {
@@ -57,8 +57,8 @@ void ChannelList::initFrom(IrcClient* client, QueryPopulateType type) {
     item.user_data = &entry;
     items.push_back(item);
   }
-  searchList.setItems(&items);
-  queryText.setData("Search: " + client->searchQuery + ": " +
+  search_list.setItems(&items);
+  query_text.setData("Search: " + client->searchQuery + ": " +
                     std::to_string(items.size()));
   }
 
@@ -76,8 +76,8 @@ void ChannelList::initFrom(IrcClient* client, QueryPopulateType type) {
     if(i < client->nameSearch.channels.size()-1)
       channels += ", ";
   }
-  searchList.setItems(&items);
-  queryText.setData("Names: " + channels + ": " +
+  search_list.setItems(&items);
+  query_text.setData("Names: " + channels + ": " +
                     std::to_string(items.size()));
   }
 }

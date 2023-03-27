@@ -24,10 +24,10 @@ class TextField : public TextReceiver {
   void setOnChangeCb(const OnEnterCallback& cb);
   TextWithState text;
   TextBox box;
-  OnEnterCallback enterCb;
+  OnEnterCallback enter_cb;
 
  private:
-  OnEnterCallback onChangeCb;
-  bool hasChangeCb = false;
+  OnEnterCallback on_change_cb;
+  bool has_change_cb = false;
 };
 #endif
