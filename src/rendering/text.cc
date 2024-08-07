@@ -27,7 +27,7 @@ Vec4f TextWithState::getCursorPosition() {
 void TextWithState::moveUp() {
   if(text_x == 0)
     return;
-;
+
   for(int i = text_x-1; i >= 0; i--) {
     if(data[i] == (char)'\n') {
       text_x = i;
@@ -66,6 +66,23 @@ void TextWithState::remove() {
   text_x--;
   last_point++;
 }
+void TextWithState::removeWord() {
+  if (text_x == 0)
+    return;
+  int len = 0;
+   for(int i = text_x-1; i >= 0; i--) {
+    len++;
+    if(i-1 == -1){
+      break;
+    }
+    if(data[i-1] == (char)' ' || data[i-1] == (char)'\t' || data[i-1] == (char)'\n') {
+      break;
+    }
+  }
+  text_x -= len;
+  data.erase(data.begin() + text_x, data.begin() + (text_x + len));
+  last_point++;
+}
 void TextWithState::clearData() {
   data.clear();
   text_x = 0;
@@ -78,6 +95,57 @@ void TextWithState::moveLeft() {
 void TextWithState::moveRight() {
   if (text_x < data.size())
     text_x++;
+}
+void TextWithState::moveLineStart() {
+  for(int i = text_x; i >= 0; i--) {
+    if(i - 1 <= 0) {
+      text_x = 0;
+      break;
+    }
+    if(data[i-1] == (char)'\n') {
+      text_x = i;
+      return;
+    }
+  }
+}
+void TextWithState::moveLineEnd() {
+  if(text_x == data.size())
+    return;
+  for(int i = text_x; i < data.size(); i++) {
+    if(i == data.size()-1)
+      break;
+    if(data[i] == (char)'\n') {
+      text_x = i;
+      return;
+    }
+  }
+  text_x = data.size();
+}
+void TextWithState::moveWordBack() {
+  for(int i = text_x-1; i >= 0; i--) {
+    if(i - 1 <= 0) {
+      text_x = 0;
+      break;
+    }
+    if(data[i-1] == (char)' ') {
+      text_x = i;
+      return;
+    }
+  }
+}
+void TextWithState::moveWordForward() {
+  if(text_x == data.size())
+    return;
+
+  for(int i = text_x+1; i < data.size(); i++) {
+    if(i >= data.size()-1)
+      break;
+    if(data[i+1] == (char)' ') {
+      text_x = i+1;
+      return;
+    }
+  }
+  text_x = data.size();
 }
 std::string TextWithState::getUtf8Value() {
   return UnicodeUtils::unicode_to_utf8(data);

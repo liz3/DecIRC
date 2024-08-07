@@ -15,11 +15,16 @@ class TextWithState {
   void append(std::string data);
   void setData(std::string content);
   void remove();
+  void removeWord();
   void moveLeft();
   void moveRight();
   void moveUp();
   void moveDown();
   void clearData();
+  void moveLineStart();
+  void moveLineEnd();
+  void moveWordBack();
+  void moveWordForward();
   uint32_t countChar(int32_t cp);
   std::string getUtf8Value();
 };

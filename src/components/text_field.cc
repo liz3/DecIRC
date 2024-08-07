@@ -30,22 +30,42 @@ void TextField::onKey(GLFWwindow* window,
   bool is_press = action == GLFW_PRESS || action == GLFW_REPEAT;
   bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
                       glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+     bool alt_pressed =
+          glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
   if (is_press) {
     if (key == GLFW_KEY_BACKSPACE) {
-      text.remove();
+      if(alt_pressed)
+        text.removeWord();
+      else
+        text.remove();
     } else if (key == GLFW_KEY_ENTER) {
       text.append('\n');
     } else if (key == GLFW_KEY_LEFT) {
       text.moveLeft();
     } else if (key == GLFW_KEY_RIGHT) {
       text.moveRight();
-    } else if (key == GLFW_KEY_UP) {
+    } else if (key == GLFW_KEY_UP || (ctrl_pressed && key == GLFW_KEY_P)) {
       text.moveUp();
-    } else if (key == GLFW_KEY_DOWN) {
+    } else if (key == GLFW_KEY_DOWN || (ctrl_pressed && key == GLFW_KEY_N)) {
       text.moveDown();
     } else if (key == GLFW_KEY_K && ctrl_pressed) {
       text.clearData();
+    } else if (key == GLFW_KEY_B){
+      if(ctrl_pressed)
+      text.moveLeft();
+    else if (alt_pressed)
+      text.moveWordBack();
+    }else if (key == GLFW_KEY_F){
+      if(ctrl_pressed)
+      text.moveRight();
+    else if (alt_pressed)
+      text.moveWordForward();
+    } else if (key == GLFW_KEY_A && ctrl_pressed) {
+      text.moveLineStart();
+    } else if (key == GLFW_KEY_E && ctrl_pressed) {
+      text.moveLineEnd();
     }
+
   }
 }
 void TextField::addText(std::string newContent) {

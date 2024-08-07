@@ -27,6 +27,12 @@ void window_focus_callback(GLFWwindow* window, int focused) {
 void character_callback(GLFWwindow* window, unsigned int codepoint) {
   auto* st = AppState::gState;
   if (st->current_text_receiver) {
+     bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+                      glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+         bool alt_pressed =
+          glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
+    if(ctrl_pressed || alt_pressed)
+      return;
     st->current_text_receiver->onCodePoint(codepoint);
   }
 }
@@ -59,15 +65,21 @@ void key_callback(GLFWwindow* window,
   }
   if (ctrl_pressed) {
     if (x_pressed) {
-      // if (isPress && key == GLFW_KEY_D) {
-      //   st->client->tryDelete();
-      // }
-      // if (isPress && key == GLFW_KEY_A) {
-      //   st->client->startDmCall();
-      // }
+
       if (isPress && key == GLFW_KEY_E) {
-        st->client->tryEdit();
-      }
+      st->components->message_list.scrollEnd();
+    }  else if (isPress && key == GLFW_KEY_U) {
+      st->client->renderUserList();
+      return;
+    } else if (isPress && key == GLFW_KEY_D) {
+      st->components->root_list_display = 1;
+      st->setTextReceiver(&st->components->channel_list);
+      return;
+    } else if (isPress && key == GLFW_KEY_G) {
+      st->components->root_list_display = 2;
+      st->setTextReceiver(&st->components->network_list);
+      return;
+    } 
       return;
     }
     if (shift_pressed && isPress && (key == GLFW_KEY_P || key == GLFW_KEY_N)) {
@@ -78,25 +90,11 @@ void key_callback(GLFWwindow* window,
       st->setTextReceiver(&st->components->chat_input);
 
       return;
-    } else if (isPress && key == GLFW_KEY_E) {
-      st->components->message_list.scrollEnd();
-      return;
-    } else if (isPress && key == GLFW_KEY_U) {
-      st->client->renderUserList();
-      return;
-    } else if (isPress && key == GLFW_KEY_P) {
+    }else if (isPress && key == GLFW_KEY_U) {
       st->components->message_list.changeScroll(-25);
       return;
-    } else if (isPress && key == GLFW_KEY_N) {
-      st->components->message_list.changeScroll(25);
-      return;
     } else if (isPress && key == GLFW_KEY_D) {
-      st->components->root_list_display = 1;
-      st->setTextReceiver(&st->components->channel_list);
-      return;
-    } else if (isPress && key == GLFW_KEY_G) {
-      st->components->root_list_display = 2;
-      st->setTextReceiver(&st->components->network_list);
+      st->components->message_list.changeScroll(25);
       return;
     } else if (isPress && key == GLFW_KEY_C) {
       if (st->current_text_receiver) {
