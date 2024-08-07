@@ -44,7 +44,7 @@ set(DEC_SOURCES src/irc/irc_socket.cc
   src/components/user_list.cc src/components/channel_list.cc 
   src/components/text_field.cc src/components/message_list.cc 
   src/irc/irc_event_handler.cc src/irc/image_cache.cc 
-  src/irc/message_state.cc third-party/png/lodepng.cpp 
+  src/irc/message_state.cc src/irc/message_util.cc third-party/png/lodepng.cpp
   third-party/gifdec/gifdec.c src/components/image_overlay.cc 
   src/utils/notifications.cc src/utils/config.cc src/utils/web_util.cc)
 

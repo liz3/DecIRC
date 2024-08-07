@@ -2,6 +2,7 @@
 #include "../gui_components.h"
 #include "../utils/notifications.h"
 #include "irc_client.h"
+#include "message_util.h"
 
 IrcEventHandler* create_irc_event_handler() {
 #ifdef _WIN32
@@ -372,7 +373,7 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
                 ? (ch.name + "@" + client->networkInfo.given_name)
                 : (chatMessage.source.getName() + " in " + ch.name + "@" +
                    client->networkInfo.given_name);
-        Notifications::sendNotification(header, chatMessage.content);
+        Notifications::sendNotification(header, IrcMessageUtil::stripMessage(chatMessage.content));
       }
     }
     auto& channelMessages = ch.messages;

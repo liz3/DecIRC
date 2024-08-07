@@ -61,13 +61,7 @@ void RenderMessage::fetchImages() {
   if (initial_loading)
     return;
   initial_loading = true;
-  //   for (std::map<std::string, DiscordMessageAttachment>::iterator it =
-  //          m_holder->message.attachments.begin();
-  //      it != m_holder->message.attachments.end(); ++it) {
-  //   if (it->second.content_type.find("image") != -1) {
-  //     fetchImage(it->second.proxy_url);
-  //   }
-  // }
+
 }
 void RenderMessage::render(float x, float y, float w, bool selected) {
   if (selected) {
@@ -241,9 +235,6 @@ RenderMessage::RenderMessage(MessageHolder* holder)
     box.color = vec4f(0.8, 0.3, 0.3, 1);
   }
 
-  // for (auto& em : holder->message.embeds) {
-  //   embeds.push_back(new EmbedRender(em));
-  // }
   std::string cpy = holder->message.content;
   while (true) {
     int res = -1;
