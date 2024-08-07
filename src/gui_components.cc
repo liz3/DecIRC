@@ -14,6 +14,7 @@ void GuiComponents::init() {
   header_comp.background = vec4f(0.2, 0.2, 0.2, 1);
   header_comp.style = "bold";
   caption_comp.scale = 0.7;
+  caption_comp.richRender = true;
   dm_list.title.setData("Channels");
   network_list.title.setData("Networks");
   channel_list.title.setData("Channels");

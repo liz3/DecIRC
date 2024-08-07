@@ -52,6 +52,7 @@ void SearchList::render(float x, float y, float w, float h) {
       break;
     TextWithState entry_text(entry->name);
     TextBox box(entry_text);
+    box.richRender = true;
     box.color = entry->color;
     box.render(x, y - offset, w, atlas->effective_atlas_height);
     if (current_selected == entry && focused) {
