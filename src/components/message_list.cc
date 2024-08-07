@@ -260,9 +260,9 @@ RenderMessage::RenderMessage(MessageHolder* holder)
       break;
     std::string start = cpy.substr(res);
     bool f = false;
-    for (char c : " \n \t") {
-      auto i = start.find(c, 0);
-      if (i != std::string::npos) {
+    for(size_t i = 0; i < start.length(); i++) {
+      char c = start[i];
+      if(c < 33 || c > 126) {
         f = true;
         std::string link = start.substr(0, i);
         if(isImage(link))

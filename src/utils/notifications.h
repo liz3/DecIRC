@@ -22,7 +22,7 @@ class WinToastHandlerExample : public IWinToastHandler {
 
 class Notifications {
  public:
-  static void sendNotification(std::string& title, std::string& body);
+  static void sendNotification(const std::string& title, const std::string& body);
   static void init();
 };
 #endif

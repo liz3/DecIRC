@@ -46,7 +46,7 @@ set(DEC_SOURCES src/irc/irc_socket.cc
   src/irc/irc_event_handler.cc src/irc/image_cache.cc 
   src/irc/message_state.cc third-party/png/lodepng.cpp 
   third-party/gifdec/gifdec.c src/components/image_overlay.cc 
-  src/utils/notifications.cc src/utils/config.cc)
+  src/utils/notifications.cc src/utils/config.cc src/utils/web_util.cc)
 
 if(WIN32)
   list(APPEND DEC_SOURCES

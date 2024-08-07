@@ -4,7 +4,7 @@
 #include <codecvt>
 #endif
 
-void Notifications::sendNotification(std::string& title, std::string& body) {
+void Notifications::sendNotification(const std::string& title, const std::string& body) {
 #ifdef _WIN32
   std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
   std::wstring wideTitle = converter.from_bytes(title);
