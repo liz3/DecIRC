@@ -13,6 +13,7 @@ void GuiComponents::init() {
   };
   header_comp.background = vec4f(0.2, 0.2, 0.2, 1);
   header_comp.style = "bold";
+  caption_comp.scale = 0.7;
   dm_list.title.setData("Channels");
   network_list.title.setData("Networks");
   channel_list.title.setData("Channels");
@@ -52,14 +53,17 @@ void GuiComponents::render() {
   auto window_width = state->window_width;
   auto window_height = state->window_height;
   message_list.setWidth(window_width - 490);
-  message_list.setAvailableHeight(window_height - 65 - 140);
+  message_list.setAvailableHeight(window_height - 80 - 140);
   message_list.render(470, 80, 0, 0);
   chat_input.render(470, window_height - 85,
                     window_width - 490, 70);
   if (header_text.data.size()) {
     auto abs = state->getPositionAbsolute(window_width - (window_width - 470),
                                           -30, window_width - 490, 65);
-    header_comp.render(abs.x, abs.y, window_width - 490, 65);
+    header_comp.render(abs.x, abs.y, window_width - 490, 80);
+    abs = state->getPositionAbsolute(window_width - (window_width - 470),
+                                          50, window_width - 490, 15);
+    caption_comp.render(abs.x, abs.y, window_width - 490, 15);
   }
 
   network_list.render(50, 50, 400, 400);
@@ -74,8 +78,8 @@ void GuiComponents::render() {
   }
 }
 GuiComponents::GuiComponents(AppState* _state)
-    : header_comp(header_text), status_comp(status_text) {
+    : header_comp(header_text), status_comp(status_text), caption_comp(caption_text) {
   state = _state;
 }
 GuiComponents::GuiComponents()
-    : header_comp(header_text), status_comp(status_text) {}
+    : header_comp(header_text), status_comp(status_text), caption_comp(caption_text) {}

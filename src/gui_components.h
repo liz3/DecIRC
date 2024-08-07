@@ -27,6 +27,8 @@ class GuiComponents {
   SearchList network_list;
   TextBox header_comp;
   TextWithState header_text;
+  TextBox caption_comp;
+  TextWithState caption_text;
   TextBox status_comp;
   TextWithState status_text;
   std::vector<GuiThreadTask> tasks;

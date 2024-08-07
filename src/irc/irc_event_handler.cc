@@ -698,6 +698,7 @@ void IrcEventHandler::updateActiveChannel() {}
 void IrcEventHandler::activateChannel(IrcChannel* ch) {
   if (ch == nullptr) {
     components->header_text.setData("");
+    components->caption_text.setData("");
     components->message_list.clearList();
     active_channel = "";
     active_channel_ptr = nullptr;
@@ -707,6 +708,7 @@ void IrcEventHandler::activateChannel(IrcChannel* ch) {
   std::cout << "active channel: " << ch->name << "\n";
   IrcChannel& ref = *ch;
   components->header_text.setData(ref.name);
+  components->caption_text.setData(ref.topic);
   components->message_list.clearList();
   ChannelState& state = message_state.state[id];
   for (auto* msg : state.messages) {
