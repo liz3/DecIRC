@@ -67,6 +67,13 @@ std::vector<RichChar>& TextBox::preprocess() {
         bold = !bold;
         continue;
       }
+       if (cp == 0x04) {
+        i += 6;
+        continue;
+      }
+      if(cp == 0x16) {
+        continue;
+      }
       if (cp == 0x0F) {
         bold = false;
         italics = false;
@@ -76,19 +83,19 @@ std::vector<RichChar>& TextBox::preprocess() {
         color = false;
         continue;
       }
-      if (cp == 0x01D) {
+      if (cp == 0x1D) {
         italics = !italics;
         continue;
       }
-      if (cp == 0x01F) {
+      if (cp == 0x1F) {
         underline = !underline;
         continue;
       }
-      if (cp == 0x01E) {
+      if (cp == 0x1E) {
         strikethrough = !strikethrough;
         continue;
       }
-      if (cp == 0x011) {
+      if (cp == 0x11) {
         monospace = !monospace;
         continue;
       }
