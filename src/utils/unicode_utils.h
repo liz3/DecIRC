@@ -44,7 +44,9 @@ class UnicodeUtils {
                          (u2 - 128) * 64 + (u3 - 128));
         l -= 4;
         u = u.substr(4);
+        continue;
       }
+      break; // invalid code?
     }
     return points;
   }

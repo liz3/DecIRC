@@ -643,7 +643,7 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
   components->chat_input.text.setData("");
 }
 void IrcEventHandler::loadChannel(IrcChannel* ch) {
-  if (active_network == ch->client && active_channel == ch->name) {
+  if (active_network == ch->client && active_channel_ptr == ch) {
     return;
   }
   if (active_network != ch->client)
