@@ -72,15 +72,22 @@ void SearchList::onKey(GLFWwindow* window,
                        int action,
                        int mods) {
   bool isPress = action == GLFW_PRESS || action == GLFW_REPEAT;
+    bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+                      glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+                           bool alt_pressed =
+          glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
   if (isPress) {
     if (key == GLFW_KEY_BACKSPACE) {
+      if(alt_pressed)
+        text.removeWord();
+      else
       text.remove();
       recompute();
-    } else if (key == GLFW_KEY_UP) {
+    } else if (key == GLFW_KEY_UP || (ctrl_pressed && key == GLFW_KEY_P)) {
       if (selected_index > 0) {
         current_selected = filtered[--selected_index];
       }
-    } else if (key == GLFW_KEY_DOWN) {
+    } else if (key == GLFW_KEY_DOWN || (ctrl_pressed && key == GLFW_KEY_N)) {
       if (selected_index < filtered.size() - 1) {
         current_selected = filtered[++selected_index];
       }

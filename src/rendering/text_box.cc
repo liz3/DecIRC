@@ -105,44 +105,37 @@ std::vector<RichChar>& TextBox::preprocess() {
           color = false;
           continue;
         }
-        if (next >= '0' && next <= '9') {
-          auto sec = text.data[i + 2];
-          if (sec == ',') {
-            std::string fg(1, (char)next);
-            size_t cc = std::stoi(fg);
-            color = true;
-            fg_color = IRC_COLORS[cc];
-            i += 3;
-            continue;
-          } else if (sec >= '0' && sec <= '9') {
-            std::string fg(1, (char)next);
-            fg += (char)sec;
-            auto third = text.data[i + 3];
-            if (third == ',') {
-              i += 5;
-            } else {
-              i += 2;
-            }
-            size_t cc = std::stoi(fg);
-            if(cc == 99) {
-              color = false;
-            } else {
-              color = true;
-              fg_color = IRC_COLORS[cc];
-            }
-            continue;
-          } else {
-            std::string fg(1, (char)next);
-            size_t cc = std::stoi(fg);
-            color = true;
-            fg_color = IRC_COLORS[cc];
-            i += 1;
-          }
-
-        } else {
-          color = false;
+        if (next < '0' || next > '9')
           continue;
+        i += 1;
+        std::string fg(1, (char)next);
+        next = text.data[i + 1];
+        if (next >= '0' && next <= '9') {
+          fg += next;
+          i += 1;
+          next = text.data[i + 1];
         }
+        if (next == ',') {
+          char after =  text.data[i + 2];
+          if (after >= '0' && after <= '9') {
+              i += 2;
+              std::string bg(1, (char)after);
+              after = text.data[i + 1];
+              if (after >= '0' && after <= '9') {
+                bg += after;
+                i += 1;
+              }
+          }
+        }
+        size_t cc = std::stoi(fg);
+        if(cc == 99) {
+          color = false;
+        } else {
+            color = true;
+            fg_color = IRC_COLORS[cc];
+        }
+        continue;
+
       }
       if (bold)
         ch.style = "bold";

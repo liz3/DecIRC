@@ -9,6 +9,13 @@ std::string IrcMessageUtil::stripMessage(const std::string& input) {
       if (cp == 0x02) {
         continue;
       }
+      if (cp == 0x04) {
+        i += 6;
+        continue;
+      }
+      if(cp == 0x16) {
+        continue;
+      }
       if (cp == 0x0F) {
         continue;
       }
@@ -24,32 +31,33 @@ std::string IrcMessageUtil::stripMessage(const std::string& input) {
       if (cp == 0x011) {
         continue;
       }
-      if (cp == 0x03) {
+     if (cp == 0x03) {
         auto next = input[i + 1];
         if (next == ',') {
           continue;
         }
-        if (next >= '0' && next <= '9') {
-          auto sec = input[i + 2];
-          if (sec == ',') {
-            continue;
-          } else if (sec >= '0' && sec <= '9') {
-            std::string fg(1, (char)next);
-            fg += (char)sec;
-            auto third = input[i + 3];
-            if (third == ',') {
-              i += 5;
-            } else {
-              i += 2;
-            }
-            continue;
-          } else {
-            i += 1;
-          }
-        } else {
+        if (next < '0' || next > '9')
           continue;
+        i += 1;
+        next = input[i + 1];
+        if (next >= '0' && next <= '9') {
+          i += 1;
+          next = input[i + 1];
         }
+        if (next == ',') {
+          char after =  input[i + 2];
+          if (after >= '0' && after <= '9') {
+              i += 2;
+              after = input[i + 1];
+              if (after >= '0' && after <= '9') {
+                i += 1;
+              }
+          }
+        }
+        continue;
+
       }
+
       ss << cp;
   }
 
