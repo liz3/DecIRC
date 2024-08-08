@@ -25,6 +25,7 @@ class IrcSocket {
 
   std::string host;
 
+  std::atomic<bool> cancelled;
   uint16_t port;
   bool connected;
   std::unique_ptr<ix::Socket> sock;
