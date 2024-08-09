@@ -1,9 +1,6 @@
 [submodule "third-party/libwebp"]
 	path = third-party/libwebp
 	url = https://chromium.googlesource.com/webm/libwebp
-[submodule "third-party/IXWebSocket"]
-	path = third-party/IXWebSocket
-	url = https://github.com/machinezone/IXWebSocket
 [submodule "third-party/zlib"]
 	path = third-party/zlib
 	url = https://github.com/madler/zlib
