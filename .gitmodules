@@ -7,3 +7,6 @@
 [submodule "third-party/boringssl"]
 	path = third-party/boringssl
 	url = https://boringssl.googlesource.com/boringssl.git
+[submodule "third-party/IXWebSocket"]
+	path = third-party/IXWebSocket
+	url = https://github.com/liz3/IXWebSocket.git
