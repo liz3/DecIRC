@@ -84,7 +84,9 @@ set(PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lpng1639 ${CMAKE_CUR
 set(PNG_PNG_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third-party/lpng1639 ${CMAKE_CURRENT_BINARY_DIR}/third-party/lpng1639/)
 
 
-
+if(WIN32)
+  set(OPENSSL_NO_ASM ON)
+endif()
 add_subdirectory(third-party/boringssl)
 # set(MBEDTLS_INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/third-party/mbedtls/include)
 # set(MBEDTLS_LIBRARY mbedtls)
@@ -98,7 +100,7 @@ add_subdirectory(third-party/freetype2)
 set(USE_ZLIB OFF)
 if(WIN32)
   set(OPENSSL_FOUND ON)
-set(OPENSSL_LIBRARIES libcrypto libssl)
+set(OPENSSL_LIBRARIES crypto ssl)
   set(OPENSSL_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third-party/boringssl/include)
 endif()
 add_subdirectory(third-party/IXWebSocket)
