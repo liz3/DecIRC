@@ -7,6 +7,6 @@
 [submodule "third-party/zlib"]
 	path = third-party/zlib
 	url = https://github.com/madler/zlib
-[submodule "third-party/openssl-cmake"]
-	path = third-party/openssl-cmake
-	url = https://github.com/viaduck/openssl-cmake
+[submodule "third-party/boringssl"]
+	path = third-party/boringssl
+	url = https://boringssl.googlesource.com/boringssl.git
