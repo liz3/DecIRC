@@ -31,6 +31,8 @@ void IrcSocket::setupAndConnect() {
   };
   sock = ix::createSocket(useTLS, -1, err, opts);
   connected = sock->connect(host, port, err, isCancellationRequested);
+  if (!connected) 
+    std::cout << err << "\n";
 }
 bool IrcSocket::write(std::string& data) {
   auto cancelled =
