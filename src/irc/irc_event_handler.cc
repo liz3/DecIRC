@@ -466,6 +466,8 @@ void IrcEventHandler::addChannel(IrcClient* client, std::string name) {
   channel.client = client;
   channel.type = type;
   channel.name = name;
+  if(client->notifyMap.count(name))
+    channel.notify = client->notifyMap[name];
   joinedChannels[name] = channel;
   if (active_network == client)
     components->runLater(
@@ -482,6 +484,9 @@ void IrcEventHandler::populateChannels(IrcClient* active) {
       SearchItem item;
       item.user_data = &ch;
       item.name = ch.name;
+      if(ch.notify) {
+        item.name = "*" + ch.name;
+      }
       channel_items.push_back(item);
     }
   }
@@ -557,6 +562,9 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
     } else if (command == "NOTIFY") {
       if (active_channel_ptr) {
         active_channel_ptr->notify = !active_channel_ptr->notify;
+        active_network->notifyMap[active_channel_ptr->name] = active_channel_ptr->notify;
+        AppState::gState->config.saveClients(active_networks);
+         populateChannels(active_network); 
       }
     }
     if (active_network) {

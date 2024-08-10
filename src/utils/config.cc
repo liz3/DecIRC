@@ -37,6 +37,12 @@ std::vector<IrcClient*> DecConfig::loadClients() {
                 client->verifySSL = val["verify-ssl"];
              if(val.contains("auto-connect"))
                 client->autoConnect = val["auto-connect"];
+            if(val.contains("notify")) {
+                json& notifies = val["notify"];
+                for(auto& [chan, v] : notifies.items()){
+                    client->notifyMap[chan] = v;
+                }
+            }
             clients.push_back(client);
         }
     }
@@ -59,6 +65,13 @@ void DecConfig::saveClients(std::vector<IrcClient*>& clients) {
             entry["realname"] = client->realname;
         if(client->autoConnect)
             entry["auto-connect"] = true;
+        if(client->notifyMap.size()) {
+            json notifies;
+            for(auto chan : client->notifyMap) {
+                notifies[chan.first] = chan.second;
+            }
+            entry["notify"] = notifies;
+        }
         cls[client->networkInfo.given_name] = entry;
     }
     rootConfig["networks"] = cls;
