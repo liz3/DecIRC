@@ -59,6 +59,9 @@ void ImageCache::fetchImage(std::string url,
         type = Jpg;
       } else if (contentType == "image/gif") {
         type = Gif;
+      } else {
+        cb(false, nullptr);
+        return;
       }
       std::string& p = response->body;
       std::vector<uint8_t> in(p.c_str(), p.c_str() + p.length());

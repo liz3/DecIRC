@@ -12,6 +12,9 @@ class DecConfig {
 public:
     std::vector<IrcClient*> loadClients();
     void saveClients(std::vector<IrcClient*>& clients);
+    json loadCache(const std::string& network, const std::string& channel);
+    void saveCache(const std::string& network, const std::string& channel, json& list);
+    int getCacheSize();
 #ifdef DEC_LIZ_PNG_UPLOAD
     std::string getPngUploadToken();
     void savePngUploadToken(std::string value);

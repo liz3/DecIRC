@@ -60,6 +60,7 @@ class IrcEventHandler {
   void closeAll();
   bool isPrefixChar(char ch);
   void switchRawMode();
+  void persistChannels();
  private:
   size_t global_channel_count = 0;
   ix::HttpClient httpClient;

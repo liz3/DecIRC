@@ -1,5 +1,6 @@
 #include "config.h"
 #include "file_util.h"
+#include <algorithm>
 namespace fs = std::filesystem;
 fs::path* DecConfig::getHomeFolder(){
 #ifdef _WIN32
@@ -47,6 +48,55 @@ std::vector<IrcClient*> DecConfig::loadClients() {
         }
     }
     return clients;
+}
+json DecConfig::loadCache(const std::string& network, const std::string& channel){
+     fs::path* homeDir = getHomeFolder();
+
+    if(!homeDir){
+        return json::array();
+    }
+    std::string channel_name = channel;
+    std::replace( channel_name.begin(), channel_name.end(), '#', '_');
+    channel_name += ".json";
+    fs::path file = (*homeDir) / ".decirc" / "message-cache" / network / channel_name;
+    if(!fs::exists(file)) {
+        delete homeDir;
+        return json::array();
+    }
+    std::string content = FileUtils::file_to_string(file.generic_string());
+    delete homeDir;
+    return json::parse(content);
+}
+void DecConfig::saveCache(const std::string& network, const std::string& channel, json& list) {
+    fs::path* homeDir = getHomeFolder();
+    if(!homeDir){
+        return;
+    }
+    fs::path base_folder = (*homeDir) / ".decirc";
+    if(!fs::exists(base_folder)) {
+        fs::create_directory(base_folder);
+    }
+     base_folder = (*homeDir) / ".decirc" / "message-cache";
+    if(!fs::exists(base_folder)) {
+        fs::create_directory(base_folder);
+    }
+     base_folder = (*homeDir) / ".decirc" / "message-cache" / network;
+    if(!fs::exists(base_folder)) {
+        fs::create_directory(base_folder);
+    }
+    std::string channel_name = channel;
+    std::replace( channel_name.begin(), channel_name.end(), '#', '_');
+    channel_name += ".json";
+    fs::path file = (*homeDir) / ".decirc" / "message-cache" / network / channel_name;
+    auto to_write = list.dump();
+    FileUtils::string_to_file(file.generic_string(), to_write);
+    delete homeDir;
+}
+int DecConfig::getCacheSize() {
+      load();
+      if(rootConfig.contains("cache_size"))
+        return rootConfig["cache_size"];
+    return 500;
 }
 void DecConfig::saveClients(std::vector<IrcClient*>& clients) {
     json cls;

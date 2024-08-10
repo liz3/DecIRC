@@ -53,6 +53,13 @@ void IrcEventHandler::addNetwork(IrcClient* client) {
   }
 }
 }
+void IrcEventHandler::persistChannels() {
+  for(auto* client : active_networks) {
+    for(auto& chann : client->getJoinedChannels()) {
+      message_state.persistChannel(&chann.second);
+    }
+  }
+}
 void IrcEventHandler::switchRawMode() {
   rawMode = !rawMode;
   if (rawMode) {
@@ -376,9 +383,9 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
         Notifications::sendNotification(header, IrcMessageUtil::stripMessage(chatMessage.content));
       }
     }
+    auto* holder = message_state.add_message(chatMessage, ch);
     auto& channelMessages = ch.messages;
     channelMessages.push_back(chatMessage);
-    auto* holder = message_state.add_message(chatMessage, ch);
     if (active_network == client && active_channel_ptr == &ch)
       components->runLater(new std::function([this, holder]() {
         this->components->message_list.addContent(holder);
@@ -718,7 +725,7 @@ void IrcEventHandler::activateChannel(IrcChannel* ch) {
   components->header_text.setData(ref.name);
   components->caption_text.setData(ref.topic);
   components->message_list.clearList();
-  ChannelState& state = message_state.state[id];
+  ChannelState& state = message_state.get(ref);
   for (auto* msg : state.messages) {
     components->message_list.addContent(msg);
   }

@@ -11,6 +11,9 @@
 #include <cstring>
 #endif
 #include <time.h>
+#include "../../third-party/json/json.hpp"
+#include "../utils/base64.hpp"
+using json = nlohmann::json;
 
 class IrcMessage {
  public:
@@ -142,9 +145,38 @@ class IrcMessageMsg : public IrcMessage {
       into.push_back(":" + content);
   }
   std::string getTimeFormatted() {
+    if(timeAsFormatted)
+      return formattedTime;
      char buffer [80];
        strftime (buffer,sizeof buffer,"%R",&time_storage);
     return std::string(buffer, strlen(buffer));
+  }
+  void fromJson(json& in){
+    formattedTime = in["time"];
+    timeAsFormatted = true;
+    channel = in["channel"];
+    action = in["action"];
+    std::string x = in["content"];
+    content = base64::from_base64(std::string_view(x));
+    source.nick = in["source"]["nick"];
+    source.username = in["source"]["username"];
+    source.host = in["source"]["host"];
+    source.onlyHost = in["source"]["onlyHost"];
+  }
+  json toJson() {
+    json j;
+    j["time"] = getTimeFormatted();
+    j["channel"] = channel;
+    j["action"] = action;
+    j["content"] = base64::to_base64(std::string_view(content));
+    json s;
+    s["nick"] = source.nick;
+    s["username"] = source.username;
+    s["host"] = source.host;
+    s["onlyHost"] = source.onlyHost;
+    j["source"] = s;
+
+    return j;
   }
   bool fromParts(const std::string& input) override {
     StreamReader reader(input);
@@ -183,7 +215,10 @@ class IrcMessageMsg : public IrcMessage {
   std::string content;
   bool action = false;
 
+
  private:
+  bool timeAsFormatted = false;
+  std::string formattedTime;
     void setTime() {
     rawtime = std::time(nullptr);
     #ifdef _WIN32

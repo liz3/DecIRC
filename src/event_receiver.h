@@ -19,6 +19,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 };
 void window_focus_callback(GLFWwindow* window, int focused) {
   AppState::gState->focused = focused;
+  if(!focused) {
+    AppState::gState->client->persistChannels();
+  }
     if (AppState::gState->current_text_receiver) {
     AppState::gState->current_text_receiver->onFocus(focused);
   }

@@ -1,38 +1,56 @@
 #include "message_state.h"
+#include "../gui_components.h"
+
 
 MessageHolder* MessageState::add_message(IrcMessageMsg message,
                                          IrcChannel& channel) {
-  if (!state.count(channel.id)) {
-    ChannelState channel_state;
-    state[channel.id] = channel_state;
-  }
-  ChannelState& channel_state = state[channel.id];
+
+  ChannelState& channel_state = get(channel);
+  channel_state.received_message = true;
   MessageHolder* holder = new MessageHolder(message);
 
   channel_state.messages.push_back(holder);
+  if (!AppState::gState->focused) {
+    persistChannel(&channel);
+  }
   return holder;
 }
-// void MessageState::remove_message(std::string id) {
-//   if (!message_index.count(id))
-//     return;
-//   MessageHolder* h = message_index[id];
-//   ChannelState& channel_state = state[h->message.channel_id];
-//   int32_t index = -1;
-//   for (int i = 0; i < channel_state.messages.size(); ++i) {
-//     if (channel_state.messages[i] == h) {
-//       index = i;
-//       break;
-//     }
-//   }
-//   if (index == -1) {
-//     // wtf?
-//     return;
-//   }
-//   channel_state.messages.erase(channel_state.messages.begin() + index);
-//   message_index.erase(id);
-//   delete h;
-// }
-// // important! need to take care incase message_list has refs to this!!!!!!
+void MessageState::persistChannel(IrcChannel* channel) {
+  if(!state.count(channel->id))
+    return;
+  ChannelState& channel_state = state[channel->id];
+  int cache_size = AppState::gState->config.getCacheSize();
+  if(channel_state.received_message) {
+    int diff = channel_state.messages.size() - cache_size;
+    if(diff < 0)
+      diff = 0;
+    json arr = json::array();
+    for(int i = diff; i < channel_state.messages.size(); i++) {
+      json m = channel_state.messages[i]->message.toJson();
+      arr.push_back(m);
+    }
+    AppState::gState->config.saveCache(channel->client->networkInfo.given_name, channel->name, arr);
+    channel_state.received_message = false;
+  }
+}
+ChannelState& MessageState::get(IrcChannel& channel) {
+  if(state.count(channel.id))
+    return state[channel.id];
+    ChannelState channel_state;
+    channel_state.channel_name = channel.name;
+    json j = AppState::gState->config.loadCache(channel.client->networkInfo.given_name, channel.name);
+    if(j.size()) {
+      for(auto& jEntry : j){
+        IrcMessageMsg msg("");
+        msg.fromJson(jEntry);
+        MessageHolder* holder = new MessageHolder(msg);
+        channel_state.messages.push_back(holder);
+        channel.messages.push_back(msg);
+      }
+    }
+    state[channel.id] = channel_state;
+    return state[channel.id];
+}
 void MessageState::remove_channel(std::string id) {
   if (!state.count(id))
     return;
