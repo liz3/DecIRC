@@ -61,6 +61,8 @@ class IrcEventHandler {
   bool isPrefixChar(char ch);
   void switchRawMode();
   void persistChannels();
+  void initQuickSearch();
+  void loadChannel(IrcChannel* ch, bool removePopover = false);
  private:
   size_t global_channel_count = 0;
   ix::HttpClient httpClient;
@@ -80,7 +82,6 @@ class IrcEventHandler {
   void activateChannel(IrcChannel* channel);
   void updateActiveChannel();
   void populateChannels(IrcClient* active);
-  void loadChannel(IrcChannel* ch);
   void processMessage(const IncomingMessage& msg, IrcClient* client);
   #ifdef DEC_LIZ_PNG_UPLOAD
     void uploadPngFile();

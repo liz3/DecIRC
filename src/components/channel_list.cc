@@ -16,8 +16,13 @@ ChannelList::ChannelList() : query_box(query_text) {
          IrcNameSearchEntry* e =
           reinterpret_cast<IrcNameSearchEntry*>(item->user_data);
           AppState::gState->client->query(network, e->name);
+      } 
+    }else if (mode == QuickSearch) {
+        IrcChannel* ch = reinterpret_cast<IrcChannel*>(item->user_data);
+        AppState::gState->client->loadChannel(ch, true);
+
+
       }
-    }
   });
 }
 bool ChannelList::canFocus() {
@@ -44,6 +49,18 @@ void ChannelList::render(float width, float height) {
                     atlas_height + 10);
   search_list.render(x, y + ((atlas_height * 2) + 45), render_width - x,
                     render_height - (atlas_height * 2) - 65 - y);
+}
+void ChannelList::initQuickSearch(std::vector<IrcChannel*> channels) {
+  mode = QueryPopulateType::QuickSearch;
+  items.clear();
+  for(auto * channel : channels) {
+    SearchItem item;
+    item.name = "[" + channel->client->networkInfo.given_name + "] " + channel->name;
+    item.user_data = channel;
+    items.push_back(item);
+  }
+ search_list.setItems(&items);
+  query_text.setData("alt+k: " + std::to_string(items.size()));
 }
 void ChannelList::initFrom(IrcClient* client, QueryPopulateType type) {
   this->mode = type;

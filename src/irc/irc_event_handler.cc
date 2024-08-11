@@ -657,10 +657,13 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
 
   components->chat_input.text.setData("");
 }
-void IrcEventHandler::loadChannel(IrcChannel* ch) {
+void IrcEventHandler::loadChannel(IrcChannel* ch, bool removePopover) {
+
   if (active_network == ch->client && active_channel_ptr == ch) {
     return;
   }
+  if(removePopover)
+    AppState::gState->components->setActivePopover(nullptr);
   if (active_network != ch->client)
     active_network = ch->client;
   active_channel = ch->name;
@@ -709,6 +712,17 @@ void IrcEventHandler::query(std::string& name) {
     query(active_network, name);
 }
 void IrcEventHandler::updateActiveChannel() {}
+
+void IrcEventHandler::initQuickSearch() {
+    std::vector<IrcChannel*> channels;
+    for(auto& entry : active_networks) {
+      for(auto& ch : entry->getJoinedChannels())
+        channels.push_back(&ch.second);
+    }
+      components->channels_popover.initQuickSearch(channels);
+      this->components->setActivePopover(&components->channels_popover);
+ 
+}
 
 void IrcEventHandler::activateChannel(IrcChannel* ch) {
   if (ch == nullptr) {

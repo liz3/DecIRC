@@ -59,6 +59,7 @@ void AppState::start() {
   client->init(components);
   components->chat_input.client = client;
   runGuiLoop();
+  client->persistChannels();
   client->closeAll();
 }
 Vec2f AppState::getPositionAbsolute(float x, float y, float w, float h) {

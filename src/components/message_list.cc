@@ -288,9 +288,6 @@ void RenderMessage::fetchImage(std::string url) {
       });
 }
 RenderMessage::~RenderMessage() {
-  // if (m_holder->message.attachments.size()) {
-  //   AppState::gState->client->image_cache.reportDead(this);
-  // }
   for (auto* em : embeds) {
     AppState::gState->client->image_cache.reportDead(em);
     delete em;
@@ -437,6 +434,21 @@ void RenderMessage::onKey(GLFWwindow* window,
                           int mods) {
   if (action != GLFW_PRESS)
     return;
+       bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+                      glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+      bool alt_pressed =
+          glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
+  if (key == GLFW_KEY_Q) {
+     if(!ctrl_pressed && !alt_pressed)
+        return;
+      auto* st = AppState::gState;
+      if(ctrl_pressed)
+      st->components->chat_input.text.setData("> " + getText() + " ");
+      else
+      st->components->chat_input.text.setData(m_holder->message.source.getName()+": ");
+      st->setTextReceiver(&st->components->chat_input);
+    return;
+  }
   bool d_pressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
   if (key >= 49 && key < 58) {
     int num = key - 49;

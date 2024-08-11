@@ -49,7 +49,12 @@ void key_callback(GLFWwindow* window,
   bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
                       glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
   bool shift_pressed = glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS;
-  bool cmd = glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS;
+  bool cmd =
+#ifdef __APPLE__
+   glfwGetKey(window, GLFW_KEY_LEFT_SUPER) == GLFW_PRESS;
+#else
+      glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
+#endif
   bool x_pressed = glfwGetKey(window, GLFW_KEY_X) == GLFW_PRESS;
 
   if (key == GLFW_KEY_ESCAPE && isPress) {
@@ -64,6 +69,10 @@ void key_callback(GLFWwindow* window,
   if (isPress && !ctrl_pressed && !shift_pressed && key == GLFW_KEY_ENTER) {
     if (st->current_text_receiver)
       st->current_text_receiver->onEnter();
+    return;
+  }
+  if(cmd && key == GLFW_KEY_K && isPress) {
+    st->client->initQuickSearch();
     return;
   }
   if (ctrl_pressed) {
