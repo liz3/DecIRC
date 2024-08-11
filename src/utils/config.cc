@@ -57,6 +57,7 @@ json DecConfig::loadCache(const std::string& network, const std::string& channel
     }
     std::string channel_name = channel;
     std::replace( channel_name.begin(), channel_name.end(), '#', '_');
+    std::replace( channel_name.begin(), channel_name.end(), '*', '-');
     channel_name += ".json";
     fs::path file = (*homeDir) / ".decirc" / "message-cache" / network / channel_name;
     if(!fs::exists(file)) {
@@ -86,6 +87,7 @@ void DecConfig::saveCache(const std::string& network, const std::string& channel
     }
     std::string channel_name = channel;
     std::replace( channel_name.begin(), channel_name.end(), '#', '_');
+    std::replace( channel_name.begin(), channel_name.end(), '*', '-');
     channel_name += ".json";
     fs::path file = (*homeDir) / ".decirc" / "message-cache" / network / channel_name;
     auto to_write = list.dump();
