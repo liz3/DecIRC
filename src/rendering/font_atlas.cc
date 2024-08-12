@@ -12,6 +12,10 @@ FontAtlas::FontAtlas(uint32_t fontSize, std::vector<std::string> m_fonts) {
     std::string type;
     if (i == 2)
       type = "bold";
+    else if(i == 3)
+      type = "italic";
+    else if(i == 4)
+      type = "bold_italic";
     else if (i == 1)
       type = "emoji";
     else {
@@ -60,9 +64,13 @@ RenderChar FontAtlas::render(int32_t cp,
     if (!loaded) {
       std::vector<std::string> order;
       if (type == "normal") {
-        order = {"normal", "bold", "emoji"};
+        order = {"normal",  "bold", "italic", "bold_italic", "emoji"};
+      } else if (type == "bold") {
+        order = {"bold", "normal", "italic", "bold_italic", "emoji"};
+      } else if (type == "bold_italic") {
+        order = {"bold_italic", "italic", "bold", "normal", "emoji"};
       } else {
-        order = {"bold", "normal", "emoji"};
+        order = {"italic", "bold", "normal", "bold_italic", "emoji"};
       }
       if (n_count > 0) {
         for (int i = 0; i < n_count; ++i) {
@@ -329,10 +337,14 @@ float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
 
     if (!loaded) {
       std::vector<std::string> order;
-      if (type == "noemal") {
-        order = {"normal", "bold", "emoji"};
+      if (type == "normal") {
+        order = {"normal",  "bold", "italic", "bold_italic", "emoji"};
+      } else if (type == "bold") {
+        order = {"bold", "normal", "italic", "bold_italic", "emoji"};
+      } else if (type == "bold_italic") {
+        order = {"bold_italic", "italic", "bold", "normal", "emoji"};
       } else {
-        order = {"bold", "normal", "emoji"};
+        order = {"italic", "bold", "normal", "bold_italic", "emoji"};
       }
       if (n_count > 0) {
         for (int i = 0; i < n_count; ++i) {
@@ -353,7 +365,7 @@ float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
       }
     }
     if (!loaded) {
-      std::cout << "load failed: " << cp << "\n";
+      std::cout << "load failed: " << std::hex << cp << "\n";
       return 0;
     }
   } else {

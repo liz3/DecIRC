@@ -6,6 +6,8 @@
 
 #include <map>
 class ChatInput : public TextField {
+private:
+  bool styleMode = false;
  public:
   MessageList* list = nullptr;
   IrcEventHandler* client;
@@ -17,6 +19,24 @@ class ChatInput : public TextField {
              int action,
              int mods) override {
     bool isPress = action == GLFW_PRESS || action == GLFW_REPEAT;
+      bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+                      glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
+    if(styleMode && ctrl_pressed && isPress) {
+      styleMode = false;
+      if (key == GLFW_KEY_I) {
+        text.append(0x1D);
+
+      }else if(key == GLFW_KEY_B) {
+        text.append(0x02);
+      }else if(key == GLFW_KEY_E) {
+        text.append(0x0F);
+      }else if(key == GLFW_KEY_S) {
+        text.append(0x1E);
+      }else if(key == GLFW_KEY_L) {
+        text.append(0x1F);
+      }
+      return;
+    }
     if (isPress && key == GLFW_KEY_ESCAPE) {
       if (images.size()) {
         auto it = images.begin();
@@ -32,6 +52,11 @@ class ChatInput : public TextField {
         images.erase(it->first);
         return;
       }
+    }
+
+    if (isPress && ctrl_pressed && key == GLFW_KEY_S) {
+      styleMode = true;
+      return;
     }
     TextField::onKey(window, key, scancode, action, mods);
   }

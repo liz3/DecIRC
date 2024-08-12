@@ -40,8 +40,8 @@ void AppState::start() {
   opengl_state = OpenGLState(window, cwd);
 
   std::vector<std::string> fontPaths;
-  for (const auto& r : {"FiraCode-Regular.ttf", "NotoColorEmoji.ttf",
-                        "FiraCode-Bold.ttf", "NotoSansMath-Regular.ttf"}) {
+  for (const auto& r : {"MapleMono-Regular.ttf", "NotoColorEmoji.ttf",
+                        "MapleMono-Bold.ttf", "MapleMono-Italic.ttf", "MapleMono-BoldItalic.ttf", "NotoSansMath-Regular.ttf", "FiraCode-Regular.ttf"}) {
     std::filesystem::path p = cwd / "assets" / "fonts" / r;
     fontPaths.push_back(p.generic_string());
   }

@@ -102,6 +102,7 @@ Since this is a bare bones project there are a couple of deps used, here they ar
 * [freetype2](https://freetype.org/) - Used for font rendering
 * [glfw](https://www.glfw.org/) - Window host and Input controller, this is vendored because i added functionality in regards to getting non text from the clipboard
 * [IXWebSocket](https://github.com/machinezone/IXWebSocket) - very very easy abstraction for http requests and websockets, I only use its TLS socket api.
+* [boringssl](https://boringssl.googlesource.com/boringssl) - Used on windows and linux as a TLS layer for IXWebSocket to use.
 * [nlohmann/json](https://github.com/nlohmann/json) - easily the best json library available for c++, used for work with json!
 * [libjpeg](http://libjpeg.sourceforge.net/) - jpeg decoder
 * [libwebp](https://chromium.googlesource.com/webm/libwebp) - webp decoder.

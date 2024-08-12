@@ -139,6 +139,10 @@ std::vector<RichChar>& TextBox::preprocess() {
       }
       if (bold)
         ch.style = "bold";
+      else if (italics)
+        ch.style = "italic";
+      if(bold && italics)
+        ch.style = "bold_italic";
       if (color)
         ch.color = fg_color;
     }
