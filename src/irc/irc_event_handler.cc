@@ -669,8 +669,10 @@ void IrcEventHandler::loadChannel(IrcChannel* ch, bool removePopover) {
   }
   if(removePopover)
     AppState::gState->components->setActivePopover(nullptr);
-  if (active_network != ch->client)
+  if (active_network != ch->client){
     active_network = ch->client;
+    populateChannels(active_network);
+  }
   active_channel = ch->name;
 
   activateChannel(ch);
