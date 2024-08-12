@@ -415,14 +415,15 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
   } else if (msg.command == "PART") {
     if (msg.forUser) {
       StreamReader reader(msg.parameters);
-      reader.skip(1);
       while (reader.rem() > 0) {
         std::string channelName = reader.readUntil(' ');
+        std::cout << "PART: \"" << channelName << "\"\n";
         reader.skip(1);
         if (channelName == client->networkInfo.network_name)
           continue;
         if (joinedChannels.count(channelName)) {
           IrcChannel* ch = &joinedChannels[channelName];
+          message_state.persistChannel(ch);
           message_state.remove_channel(ch->id);
           if (active_channel_ptr == ch)
             components->runLater(
@@ -586,6 +587,10 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
         if (command == "NAMES") {
           active_network->isInNamesQuery = true;
           active_network->nameSearch.clear();
+        }
+        if (command == "PART" && channels.length() == 0) {
+          if(active_channel_ptr)
+            channels = active_channel_ptr->name;
         }
         std::vector<std::string> args = {command, channels};
         active_network->write(args);
