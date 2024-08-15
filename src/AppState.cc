@@ -41,7 +41,7 @@ void AppState::start() {
 
   std::vector<std::string> fontPaths;
   for (const auto& r : {"MapleMono-Regular.ttf", "NotoColorEmoji.ttf",
-                        "MapleMono-Bold.ttf", "MapleMono-Italic.ttf", "MapleMono-BoldItalic.ttf", "NotoSansMath-Regular.ttf", "FiraCode-Regular.ttf"}) {
+                        "MapleMono-Bold.ttf", "MapleMono-Italic.ttf", "MapleMono-BoldItalic.ttf", "NotoSansMath-Regular.ttf", "FiraCode-Regular.ttf", "NotoSansJP-Regular.ttf"}) {
     std::filesystem::path p = cwd / "assets" / "fonts" / r;
     fontPaths.push_back(p.generic_string());
   }

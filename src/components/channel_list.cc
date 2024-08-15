@@ -51,6 +51,7 @@ void ChannelList::render(float width, float height) {
                     render_height - (atlas_height * 2) - 65 - y);
 }
 void ChannelList::initQuickSearch(std::vector<IrcChannel*> channels) {
+  query_text.setData("");
   mode = QueryPopulateType::QuickSearch;
   items.clear();
   for(auto * channel : channels) {
@@ -63,6 +64,7 @@ void ChannelList::initQuickSearch(std::vector<IrcChannel*> channels) {
   query_text.setData("alt+k: " + std::to_string(items.size()));
 }
 void ChannelList::initFrom(IrcClient* client, QueryPopulateType type) {
+  query_text.setData("");
   this->mode = type;
   items.clear();
   network = client;
