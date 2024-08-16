@@ -39,11 +39,12 @@ void AppState::start() {
   glfwSetWindowFocusCallback(window, window_focus_callback);
   opengl_state = OpenGLState(window, cwd);
 
-  std::vector<std::string> fontPaths;
-  for (const auto& r : {"MapleMono-Regular.ttf", "NotoColorEmoji.ttf",
-                        "MapleMono-Bold.ttf", "MapleMono-Italic.ttf", "MapleMono-BoldItalic.ttf", "NotoSansMath-Regular.ttf", "FiraCode-Regular.ttf", "NotoSansJP-Regular.ttf"}) {
-    std::filesystem::path p = cwd / "assets" / "fonts" / r;
-    fontPaths.push_back(p.generic_string());
+  std::vector<std::pair<std::string, std::string>> fs = {{"MapleMono-Regular.ttf", "normal"}, {"NotoColorEmoji.ttf", "emoji"},
+                        {"MapleMono-Bold.ttf", "bold"}, {"MapleMono-Italic.ttf", "italic"}, {"MapleMono-BoldItalic.ttf", "bold_italic"}, {"NotoSansMath-Regular.ttf", "normal"},{"FiraCode-Regular.ttf", "normal"}, {"NotoSansJP-Regular.ttf", "normal"}};
+  std::vector<FontPair> fontPaths;
+  for (const auto& r : fs) {
+    std::filesystem::path p = cwd / "assets" / "fonts" / r.first;
+    fontPaths.push_back({p.generic_string(), r.second});
   }
   atlas = FontAtlas(30, fontPaths);
   atlas.valid = true;

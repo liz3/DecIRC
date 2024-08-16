@@ -5,27 +5,17 @@ FontAtlas::FontAtlas() {
   valid = false;
 }
 
-FontAtlas::FontAtlas(uint32_t fontSize, std::vector<std::string> m_fonts) {
+FontAtlas::FontAtlas(uint32_t fontSize, std::vector<FontPair> m_fonts) {
   font_size = fontSize;
   init();
   for (int i = 0; i < m_fonts.size(); ++i) {
-    std::string type;
-    if (i == 2)
-      type = "bold";
-    else if(i == 3)
-      type = "italic";
-    else if(i == 4)
-      type = "bold_italic";
-    else if (i == 1)
-      type = "emoji";
-    else {
-      if (i != 0) {
-        type = "normal_" + std::to_string(n_count++);
-      } else {
-        type = "normal";
-      }
+    std::string type = m_fonts[i].type;
+    if (type == "normal"){
+      int n = n_count++;
+      if(n > 0) 
+        type = "normal_" + std::to_string(n);
     }
-    fonts[type] = init_font(m_fonts[i], i == 0, type);
+    fonts[type] = init_font(m_fonts[i].path, i == 0, type);
   }
 }
 void FontAtlas::init() {

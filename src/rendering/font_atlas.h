@@ -10,6 +10,10 @@
 #include FT_FREETYPE_H
 #include FT_TRUETYPE_TABLES_H
 
+struct FontPair {
+  std::string path;
+  std::string type;
+};
 struct FontEntry {
   FT_Face face;
   bool hasColor;
@@ -55,7 +59,7 @@ class FontAtlas {
 
   uint32_t font_size = 25;
   FT_UInt atlas_width, atlas_height, smallest_top, effective_atlas_height;
-  FontAtlas(uint32_t fontSize, std::vector<std::string> fonts);
+  FontAtlas(uint32_t fontSize, std::vector<FontPair> fonts);
   FontAtlas();
   ~FontAtlas() {
     if (!valid)
