@@ -56,7 +56,7 @@ void GuiComponents::render() {
   message_list.setWidth(window_width - 490);
   message_list.setAvailableHeight(window_height - 80 - 140);
   message_list.render(470, 80, 0, 0);
-  chat_input.render(470, window_height - 85,
+  chat_input.render(470, window_height - 80,
                     window_width - 490, 65);
   if (header_text.data.size()) {
     auto abs = state->getPositionAbsolute(window_width - (window_width - 470),
