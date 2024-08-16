@@ -278,7 +278,6 @@ void RenderMessage::fetchImage(std::string url) {
         if (!success || image == nullptr) {
           return;
         }
-
         auto* f = new std::function([image, t]() {
           Image* instance = new Image(image);
 

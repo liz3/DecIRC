@@ -399,7 +399,6 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
       std::string name = reader.readUntilEnd();
       if (!joinedChannels.count(name)) {
         addChannel(client, name);
-        std::cout << "added channel: " << msg.parameters << "\n";
       }
     } else {
       StreamReader reader(msg.parameters);

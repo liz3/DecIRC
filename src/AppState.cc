@@ -89,7 +89,7 @@ void AppState::runGuiLoop() {
     components->render();
 
     glfwSwapBuffers(window);
-    glfwWaitEvents();
+    glfwWaitEventsTimeout(1);
   }
   glfwTerminate();
 }
