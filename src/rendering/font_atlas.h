@@ -16,6 +16,7 @@ struct FontPair {
 };
 struct FontEntry {
   FT_Face face;
+  std::string type;
   bool hasColor;
 };
 struct CharacterEntry {
@@ -41,7 +42,7 @@ class CharacterEntryMap {
 class FontAtlas {
  private:
   FT_Library ft;
-  std::map<std::string, FontEntry*> fonts;
+  std::vector<FontEntry*> fonts;
   std::map<int32_t, CharacterEntryMap> characters;
   FontEntry* mainFont = nullptr;
   bool wasGenerated = false;
@@ -52,7 +53,8 @@ class FontAtlas {
   void genTexture();
   bool isColorEmojiFont(FT_Face face);
   void lazyLoadCharacter(FontEntry* entry, int32_t cp, std::string type);
-
+  FontEntry* getFontByType(const std::string& type);
+  std::vector<FontEntry*> getFontsByType(const std::string& type);
  public:
   bool valid = false;
   int n_count = 0;
@@ -64,9 +66,7 @@ class FontAtlas {
   ~FontAtlas() {
     if (!valid)
       return;
-    for (std::map<std::string, FontEntry*>::iterator it = fonts.begin();
-         it != fonts.end(); ++it) {
-      auto* e = it->second;
+    for (auto* e : fonts) {
       FT_Done_Face(e->face);
       delete e;
     }

@@ -10,12 +10,8 @@ FontAtlas::FontAtlas(uint32_t fontSize, std::vector<FontPair> m_fonts) {
   init();
   for (int i = 0; i < m_fonts.size(); ++i) {
     std::string type = m_fonts[i].type;
-    if (type == "normal"){
-      int n = n_count++;
-      if(n > 0) 
-        type = "normal_" + std::to_string(n);
-    }
-    fonts[type] = init_font(m_fonts[i].path, i == 0, type);
+
+    fonts.push_back(init_font(m_fonts[i].path, i == 0, type));
   }
 }
 void FontAtlas::init() {
@@ -24,6 +20,21 @@ void FontAtlas::init() {
               << std::endl;
     return;
   }
+}
+std::vector<FontEntry*> FontAtlas::getFontsByType(const std::string& type) {
+  std::vector<FontEntry*> temp;
+  for (auto* e : fonts) {
+    if (e->type == type)
+      temp.push_back(e);
+  }
+  return temp;
+}
+FontEntry* FontAtlas::getFontByType(const std::string& type) {
+  for (auto* e : fonts) {
+    if (e->type == type)
+      return e;
+  }
+  return nullptr;
 }
 void FontAtlas::genTexture() {
   if (wasGenerated)
@@ -40,10 +51,12 @@ RenderChar FontAtlas::render(int32_t cp,
                              std::string type,
                              float scale) {
   std::string target_type = type;
-  if (!characters.count(cp)) {
-    bool loaded = false;
-    if (fonts.count(type)) {
-      FontEntry* e = fonts[type];
+  std::string backup_key;
+  bool loaded = true;
+  if (!characters.count(cp) || !characters[cp].entries.count(type)) {
+    loaded = false;
+    if (getFontByType(type)) {
+      FontEntry* e = getFontByType(type);
       uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
       if (glyph_index != 0) {
         lazyLoadCharacter(e, cp, type);
@@ -54,51 +67,50 @@ RenderChar FontAtlas::render(int32_t cp,
     if (!loaded) {
       std::vector<std::string> order;
       if (type == "normal") {
-        order = {"normal",  "bold", "italic", "bold_italic", "emoji"};
+        order = {"normal", "bold", "italic", "bold_italic", "emoji"};
       } else if (type == "bold") {
         order = {"bold", "normal", "italic", "bold_italic", "emoji"};
       } else if (type == "bold_italic") {
         order = {"bold_italic", "italic", "bold", "normal", "emoji"};
+      } else if (type == "italic") {
+        order = {"italic", "normal", "bold", "bold_italic", "emoji"};
       } else {
-        order = {"italic", "bold", "normal", "bold_italic", "emoji"};
+        order = {"normal", "bold", "italic", "bold_italic", "emoji"};
       }
-      if (n_count > 0) {
-        for (int i = 0; i < n_count; ++i) {
-          order.push_back("normal_" + std::to_string(i));
-        }
-      }
-      for (auto& s : order) {
-        if (!fonts.count(s))
-          continue;
-        auto* e = fonts[s];
-        uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
-        if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, s);
-          target_type = s;
-          break;
-        }
-      }
-    }
-  } else {
-    CharacterEntryMap& mp = characters[cp];
-    std::string known_key = mp.entries.begin()->first;
-    if (!mp.entries.count(target_type)) {
-      if (fonts.count(target_type)) {
-        FontEntry* e = fonts[target_type];
-        uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
-        if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, type);
 
-        } else {
-          target_type = known_key;
+      for (auto& s : order) {
+        if (characters.count(cp) && characters[cp].entries.count(s)){
+          if(!backup_key.size())
+            backup_key =s;
+          continue;
         }
-      } else {
-        target_type = known_key;
+        auto entries = getFontsByType(s);
+        if (!entries.size())
+          continue;
+        for (auto* e : entries) {
+          uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
+          if (glyph_index != 0) {
+            lazyLoadCharacter(e, cp, s);
+            target_type = s;
+            loaded = true;
+            break;
+          }
+        }
+        if (loaded)
+          break;
       }
     }
   }
-  auto* entry = &characters[cp].entries[target_type];
+
   RenderChar r;
+  if(!loaded) {
+    if(backup_key.size())
+      target_type = backup_key;
+    else
+      return r;
+  }
+  auto* entry = &characters[cp].entries[target_type];
+
   float x2 = x + (entry->left * scale);
 
   float y2 = y - (entry->top * scale);
@@ -131,6 +143,7 @@ FontEntry* FontAtlas::init_font(std::string path,
     delete entry;
     return nullptr;
   }
+  entry->type = type;
   entry->hasColor = isColorEmojiFont(face);
   if (!entry->hasColor)
     FT_Set_Pixel_Sizes(face, 0, font_size);
@@ -314,10 +327,11 @@ void FontAtlas::bindTexture() {
 }
 float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
   std::string target_type = type;
-  if (!characters.count(cp)) {
+  std::string backup_key;
+  if (!characters.count(cp) || !characters[cp].entries.count(type)) {
     bool loaded = false;
-    if (fonts.count(type)) {
-      FontEntry* e = fonts[type];
+    if (getFontByType(type)) {
+      FontEntry* e = getFontByType(type);
       uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
       if (glyph_index != 0) {
         lazyLoadCharacter(e, cp, type);
@@ -328,51 +342,44 @@ float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
     if (!loaded) {
       std::vector<std::string> order;
       if (type == "normal") {
-        order = {"normal",  "bold", "italic", "bold_italic", "emoji"};
+        order = {"normal", "bold", "italic", "bold_italic", "emoji"};
       } else if (type == "bold") {
         order = {"bold", "normal", "italic", "bold_italic", "emoji"};
       } else if (type == "bold_italic") {
         order = {"bold_italic", "italic", "bold", "normal", "emoji"};
+      } else if (type == "italic") {
+        order = {"italic", "normal", "bold", "bold_italic", "emoji"};
       } else {
-        order = {"italic", "bold", "normal", "bold_italic", "emoji"};
-      }
-      if (n_count > 0) {
-        for (int i = 0; i < n_count; ++i) {
-          order.push_back("normal_" + std::to_string(i));
-        }
+        order = {"normal", "bold", "italic", "bold_italic", "emoji"};
       }
       for (auto& s : order) {
-        if (!fonts.count(s))
+        if (characters.count(cp) && characters[cp].entries.count(s)){
+          if(!backup_key.length())
+            backup_key = s;
           continue;
-        auto* e = fonts[s];
-        uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
-        if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, s);
-          target_type = s;
-          loaded = true;
-          break;
         }
+        auto entries = getFontsByType(s);
+        if (!entries.size())
+          continue;
+        for (auto* e : entries) {
+          uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
+          if (glyph_index != 0) {
+            lazyLoadCharacter(e, cp, s);
+            target_type = s;
+            loaded = true;
+            break;
+          }
+        }
+        if (loaded)
+          break;
       }
     }
     if (!loaded) {
+      if(backup_key.length()) {
+        target_type = backup_key;
+      } else {
       std::cout << "load failed: " << std::hex << cp << "\n";
       return 0;
-    }
-  } else {
-    CharacterEntryMap& mp = characters[cp];
-    std::string known_key = mp.entries.begin()->first;
-    if (!mp.entries.count(target_type)) {
-      if (fonts.count(target_type)) {
-        FontEntry* e = fonts[target_type];
-        uint32_t glyph_index = FT_Get_Char_Index(e->face, cp);
-        if (glyph_index != 0) {
-          lazyLoadCharacter(e, cp, type);
-
-        } else {
-          target_type = known_key;
-        }
-      } else {
-        target_type = known_key;
       }
     }
   }

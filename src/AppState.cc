@@ -40,7 +40,7 @@ void AppState::start() {
   opengl_state = OpenGLState(window, cwd);
 
   std::vector<std::pair<std::string, std::string>> fs = {{"MapleMono-Regular.ttf", "normal"}, {"NotoColorEmoji.ttf", "emoji"},
-                        {"MapleMono-Bold.ttf", "bold"}, {"MapleMono-Italic.ttf", "italic"}, {"MapleMono-BoldItalic.ttf", "bold_italic"}, {"NotoSansMath-Regular.ttf", "normal"},{"FiraCode-Regular.ttf", "normal"}, {"NotoSansJP-Regular.ttf", "normal"}};
+                        {"MapleMono-Bold.ttf", "bold"}, {"MapleMono-Italic.ttf", "italic"}, {"MapleMono-BoldItalic.ttf", "bold_italic"}, {"NotoSansMath-Regular.ttf", "normal"},{"FiraCode-Regular.ttf", "normal"}, {"NotoSansJP-Regular.ttf", "normal"}, {"NotoSansJP-Bold.ttf", "bold"}};
   std::vector<FontPair> fontPaths;
   for (const auto& r : fs) {
     std::filesystem::path p = cwd / "assets" / "fonts" / r.first;
