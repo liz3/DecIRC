@@ -44,6 +44,10 @@ class Image {
           break;
       }
     }
+    if(!decoded) {
+      canBeDecoded = false;
+      return;
+    }
     valid = true;
     glGenTextures(1, &tex_id);
     glActiveTexture(GL_TEXTURE0);
@@ -179,6 +183,11 @@ class Image {
     if (decoded)
       return;
     maybe_copy(content);
+    if(content.size() <= 2 || content[0] != 0xFF || content[1]!= 0xd8) {
+      canBeDecoded = false;
+      valid = false;
+      return;
+    }
     int rc;
     jpeg_decompress_struct cinfo;
     jpeg_error_mgr jerr;
@@ -196,6 +205,9 @@ class Image {
     int pixel_size = cinfo.output_components;
     if (pixel_size != 3) {
       std::cout << "jpeg pixel size not 3??? " << pixel_size << "\n";
+      canBeDecoded = false;
+      valid = false;
+      return;
     }
 
     uint8_t* pixel_buff = new uint8_t[height * width * pixel_size];
@@ -233,6 +245,8 @@ class Image {
   void render(int x, int y, float scale) {
     if (!valid)
       init();
+    if(!decoded)
+      return;
     m_shader = AppState::gState->opengl_state.image_shader;
     SimpleEntry entry = {vec2f(x, y), vec2f(width * scale, height * scale)};
     m_shader->shader.use();
