@@ -2990,7 +2990,7 @@ void _glfwSetClipboardStringX11(const char* string)
                         "X11: Failed to become owner of clipboard selection");
     }
 }
-const char* _glfwGetClipboardPngX11(int*) {
+const char* _glfwGetClipboardPngX11(GLFWimage*) {
     return NULL;
 }
 const char* _glfwGetClipboardStringX11(void)
