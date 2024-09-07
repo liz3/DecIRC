@@ -7,6 +7,9 @@
 #include <string>
 #include <vector>
 #include <functional>
+#ifdef __linux__
+#include <cstdint>
+#endif
 
 struct SearchItem {
   std::string name;

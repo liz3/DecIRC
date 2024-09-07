@@ -2,6 +2,9 @@
 #define DEC_UNICODE_UTILS
 #include <string>
 #include <vector>
+#ifdef __linux__
+#include <cstdint>
+#endif
 class UnicodeUtils {
  public:
   static std::vector<int32_t> utf8_to_codepoint(std::string raw) {

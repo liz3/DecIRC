@@ -53,10 +53,6 @@ std::string IrcSocket::read(size_t len) {
     value = std::string(buf, res);
   } 
   delete[] buf;
-  if(res <= 0) {
-    if(ix::Socket::isWaitNeeded())
-      continue;
-  }
   return value;
   }
 }

@@ -49,6 +49,7 @@
 
 // The Shape extension provides custom window shapes
 #include <X11/extensions/shape.h>
+#include "GLFW/glfw3.h"
 
 #define GLX_VENDOR 1
 #define GLX_RGBA_BIT 0x00000001
@@ -952,7 +953,7 @@ int _glfwCreateStandardCursorX11(_GLFWcursor* cursor, int shape);
 void _glfwDestroyCursorX11(_GLFWcursor* cursor);
 void _glfwSetCursorX11(_GLFWwindow* window, _GLFWcursor* cursor);
 void _glfwSetClipboardStringX11(const char* string);
-const char* _glfwGetClipboardPngX11(int*);
+const char* _glfwGetClipboardPngX11(GLFWimage*);
 const char* _glfwGetClipboardStringX11(void);
 
 EGLenum _glfwGetEGLPlatformX11(EGLint** attribs);
