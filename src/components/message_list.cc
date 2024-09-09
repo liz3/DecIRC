@@ -49,6 +49,8 @@ void MessageList::render(float x, float y, float w, float h) {
   }
 }
 void RenderMessage::disposeImages() {
+  render_x = 0;
+  render_y = 0;
   if (!initial_loading)
     return;
   for (auto*& image : images) {
