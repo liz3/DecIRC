@@ -12,6 +12,7 @@ class GLFWwindow;
 #include "../third-party/freetype2/include/ft2build.h"
 #include "rendering/opengl_state.h"
 #include "components/text_receiver.h"
+#include "components/mouse_receiver.h"
 #include "irc/irc_event_handler.h"
 #include "rendering/font_atlas.h"
 #ifndef __APPLE__
@@ -28,6 +29,7 @@ class AppState {
   void runGuiLoop();
   uint32_t window_height = 720;
   uint32_t window_width = 1280;
+  double mouse_x = 0, mouse_y = 0;
   bool focused = true;
   DecConfig config;
   static AppState* gState;
@@ -36,10 +38,11 @@ class AppState {
   AppState(std::filesystem::path cwd);
   void start();
   Vec2f getPositionAbsolute(float x, float y, float w, float h);
-  void setTextReceiver(TextReceiver* recv);
+  void setTextReceiver(TextReceiver* recv, MouseReceiver* mouse_recv = nullptr);
   void emptyEvent();
   // Receivers
   TextReceiver* current_text_receiver = nullptr;
+  MouseReceiver* current_mouse_receiver = nullptr;
 };
 
 #endif

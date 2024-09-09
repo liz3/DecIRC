@@ -27,7 +27,6 @@ void SearchList::render(float x, float y, float w, float h) {
     box.render(x, y, w, atlas->effective_atlas_height);
     y -= (atlas->effective_atlas_height + 15);
   }
-
   float offset = 0;
   {
     TextBox box(text);
@@ -46,6 +45,7 @@ void SearchList::render(float x, float y, float w, float h) {
   for (auto* entry : filtered) {
     if (skip > 0) {
       skip--;
+      entry->y = 0;
       continue;
     }
     if (offset > h)
@@ -58,6 +58,9 @@ void SearchList::render(float x, float y, float w, float h) {
     if (current_selected == entry && focused) {
       Box::render(x, y - (offset + 4), w, 4, vec4f(0.2, 0.2, 0.8, 0.8));
     }
+          entry->x = x;
+      entry->y = y - (offset + 4);
+      entry->w = w;
     offset += atlas->effective_atlas_height + 10;
   }
 }
@@ -72,16 +75,15 @@ void SearchList::onKey(GLFWwindow* window,
                        int action,
                        int mods) {
   bool isPress = action == GLFW_PRESS || action == GLFW_REPEAT;
-    bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+  bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
                       glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
-                           bool alt_pressed =
-          glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
+  bool alt_pressed = glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
   if (isPress) {
     if (key == GLFW_KEY_BACKSPACE) {
-      if(alt_pressed)
+      if (alt_pressed)
         text.removeWord();
       else
-      text.remove();
+        text.remove();
       recompute();
     } else if (key == GLFW_KEY_UP || (ctrl_pressed && key == GLFW_KEY_P)) {
       if (selected_index > 0) {
@@ -131,6 +133,51 @@ void SearchList::recompute() {
   if (current_selected == nullptr && selected_index == -1 && filtered.size()) {
     selected_index = 0;
     current_selected = filtered[0];
+  }
+}
+void SearchList::onMousePress(double x, double y, int button, int action) {
+   if(action != 0)
+    return;
+  auto* st = AppState::gState;
+
+  for (size_t i = 0; i < filtered.size(); i++) {
+    auto* entry = filtered[i];
+    if(entry->y == 0)
+      continue;
+       float corrected_y = ((-entry->y) + ((float)st->window_height / 2)) /2;
+      float corrected_x = entry->x + ((float)st->window_width / 2);
+    if (x >= corrected_x && x <= corrected_x + entry->w && y <= corrected_y &&
+        y >= corrected_y - st->atlas.effective_atlas_height + 10) {
+      selected_index = i;
+      current_selected = filtered[i];
+      break;
+    }
+  }
+}
+void SearchList::onMouseWheel(double xoffset, double yoffset) {
+  if (!filtered.size())
+    return;
+  if (yoffset > 0) {
+    int next = selected_index + 1;
+    if(next == selected_index)
+      next++;
+    if (next < filtered.size()) {
+      selected_index = next;
+      current_selected = filtered[next];
+    } else {
+      selected_index = filtered.size() - 1;
+      current_selected = filtered[filtered.size() - 1];
+    }
+  } else if (yoffset < 0) {
+    int next = selected_index -1;
+
+    if (next >= 0) {
+      selected_index = next;
+      current_selected = filtered[next];
+    } else {
+      selected_index = 0;
+      current_selected = filtered[0];
+    }
   }
 }
 void SearchList::addText(std::string newContent) {

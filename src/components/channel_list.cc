@@ -30,7 +30,7 @@ bool ChannelList::canFocus() {
 }
 void ChannelList::onFocus(bool focus) {
   if (focus)
-    AppState::gState->setTextReceiver(&search_list);
+    AppState::gState->setTextReceiver(&search_list, &search_list);
   else
     network = nullptr;
 }

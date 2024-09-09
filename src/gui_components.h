@@ -1,5 +1,6 @@
 #ifndef DEC_GUI_COMPONENTS
 #define DEC_GUI_COMPONENTS
+#include "components/mouse_receiver.h"
 class AppState;
 
 #include "./components/chat_input.h"

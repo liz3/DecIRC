@@ -1,5 +1,6 @@
 
 #include "AppState.h"
+#include "components/mouse_receiver.h"
 #include "gui_components.h"
 #include "event_receiver.h"
 #include "./utils/notifications.h"
@@ -37,6 +38,8 @@ void AppState::start() {
   glfwSetCharCallback(window, character_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
   glfwSetWindowFocusCallback(window, window_focus_callback);
+  glfwSetCursorPosCallback(window, mouse_position_callback);
+  glfwSetScrollCallback(window, scroll_callback);
   opengl_state = OpenGLState(window, cwd);
 
   std::vector<std::pair<std::string, std::string>> fs = {{"MapleMono-Regular.ttf", "normal"}, {"NotoColorEmoji.ttf", "emoji"},
@@ -67,11 +70,15 @@ Vec2f AppState::getPositionAbsolute(float x, float y, float w, float h) {
   return vec2f(x - ((window_width / 2)), (-y) + ((window_height / 2) - h));
 }
 
-void AppState::setTextReceiver(TextReceiver* recv) {
+void AppState::setTextReceiver(TextReceiver* recv, MouseReceiver* mouse_recv) {
   if (current_text_receiver) {
     current_text_receiver->onFocus(false);
   }
   current_text_receiver = recv;
+  if(!mouse_recv)
+     current_mouse_receiver = &components->message_list;
+  else
+     current_mouse_receiver = mouse_recv;
   if (current_text_receiver)
     current_text_receiver->onFocus(true);
 }
@@ -80,6 +87,7 @@ void AppState::emptyEvent() {
 }
 void AppState::runGuiLoop() {
   setTextReceiver(&components->chat_input);
+  current_mouse_receiver = &components->message_list;
   while (!glfwWindowShouldClose(window)) {
     glClearColor(0.15, 0.15, 0.25, 1);
     glClear(GL_COLOR_BUFFER_BIT);

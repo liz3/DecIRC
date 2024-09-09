@@ -67,9 +67,12 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
   if (selected) {
     Box::render(x, y + (atlas_height -5), w, (-height), vec4f(0.1, 0.1, 0.1, 1));
   }
+  render_w = w;
+  render_y = y + atlas_height;
   title_box.render(x, y, 0, 0);
   // y -= atlas_height;
   size_t offset = 300;
+  render_x = x + offset;
 
   box.render(x + offset, y, w - offset, 0);
     if(selected) {
@@ -214,6 +217,27 @@ bool RenderMessage::isImage(std::string& url) {
   }
 
   return false;
+}
+void MessageList::onMousePress(double x, double y, int button, int action) {
+  if(action != 0)
+    return;
+  auto* st = AppState::gState;
+  for(size_t i = 0; i < messages.size(); i++) {
+    auto* message = messages[i];
+    if(message->render_x == 0 || message->render_y == 0)
+      continue;
+    float corrected_y = ((-message->render_y) + ((float)st->window_height / 2)) /2;
+    float corrected_height =  (message->height)  /2;
+    if(x >= message->render_x && x <= message->render_x + message->render_w && y >= corrected_y &&  y <= corrected_y + corrected_height) {
+      selected_index = messages.size() - i - 1;
+      AppState::gState->setTextReceiver(message);
+      break;
+    }
+  }
+}
+void MessageList::onMouseWheel(double xoffset, double yoffset) {
+  if(yoffset != 0)
+  changeScroll(-(yoffset*5));
 }
 RenderMessage::RenderMessage(MessageHolder* holder)
     : m_holder(holder), box(text), title_box(title) {

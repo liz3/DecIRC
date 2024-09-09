@@ -692,7 +692,7 @@ void IrcEventHandler::itemSelected(std::string type, const SearchItem* item) {
     }
     active_network = p;
     populateChannels(p);
-    AppState::gState->setTextReceiver(&components->channel_list);
+    AppState::gState->setTextReceiver(&components->channel_list, &components->channel_list);
     components->root_list_display = 3;
 
   } else if (type == "channel") {

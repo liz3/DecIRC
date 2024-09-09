@@ -1,10 +1,12 @@
 #ifndef DEC_MESSAGE_LIST
 #define DEC_MESSAGE_LIST
+#include <stdint.h>
 #include "../rendering/box.h"
 #include "../rendering/image.h"
 #include "../rendering/text.h"
 #include <mutex>
 #include "text_receiver.h"
+#include "mouse_receiver.h"
 #include "component.h"
 
 #include "../rendering/text_box.h"
@@ -22,7 +24,7 @@ class EmbedRender {
   ~EmbedRender();
   void render(float x, float y, float w);
 };
-class RenderMessage : public TextReceiver {
+class RenderMessage : public TextReceiver{
  public:
   TextWithState text;
   TextBox box;
@@ -30,6 +32,7 @@ class RenderMessage : public TextReceiver {
   TextBox title_box;
   MessageHolder* m_holder;
   bool hasFocus = false;
+  float render_x = 0, render_y = 0, render_w = 0;
   RenderMessage(MessageHolder* holder);
   std::vector<Image*> images;
   std::vector<std::string> links;
@@ -59,9 +62,10 @@ class RenderMessage : public TextReceiver {
 
   void addText(std::string text) override;
   std::string getText() override;
+ 
 };
 
-class MessageList : public Component {
+class MessageList : public Component,  public MouseReceiver  {
  public:
   std::vector<RenderMessage*> messages;
   float height = 0.0;
@@ -84,5 +88,7 @@ class MessageList : public Component {
   void selectIndex(int32_t diff);
   void updateEntry(MessageHolder*);
   void removeEntry(MessageHolder*);
+  void onMousePress(double x, double y, int button, int action) override;
+  void onMouseWheel(double xoffset, double yoffset) override;
 };
 #endif

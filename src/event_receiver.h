@@ -60,6 +60,7 @@ void key_callback(GLFWwindow* window,
   if (key == GLFW_KEY_ESCAPE && isPress) {
     if (st->components->active_popover) {
       st->components->setActivePopover(nullptr);
+      st->setTextReceiver(&st->components->chat_input);
       return;
     } else if (st->client->editMode) {
       st->client->cancelEdit();
@@ -85,11 +86,12 @@ void key_callback(GLFWwindow* window,
       return;
     } else if (isPress && key == GLFW_KEY_D) {
       st->components->root_list_display = 1;
-      st->setTextReceiver(&st->components->channel_list);
+      st->setTextReceiver(&st->components->channel_list, &st->components->channel_list);
       return;
     } else if (isPress && key == GLFW_KEY_G) {
       st->components->root_list_display = 2;
-      st->setTextReceiver(&st->components->network_list);
+
+      st->setTextReceiver(&st->components->network_list, &st->components->network_list);
       return;
     } 
       return;
@@ -99,6 +101,7 @@ void key_callback(GLFWwindow* window,
       return;
     }
     if (isPress && key == GLFW_KEY_M) {
+            st->current_mouse_receiver = &st->components->message_list;
       st->setTextReceiver(&st->components->chat_input);
 
       return;
@@ -152,5 +155,23 @@ void mouse_button_callback(GLFWwindow* window,
                            int action,
                            int mods){
 
+  auto* st = AppState::gState;
+  if(st->current_mouse_receiver) {
+    st->current_mouse_receiver->onMousePress(st->mouse_x, st->mouse_y, button, action);
+  }
+};
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    auto* st = AppState::gState;
+  if(st->current_mouse_receiver) {
+    st->current_mouse_receiver->onMouseWheel(xoffset, yoffset);
+  }
+}
+
+void mouse_position_callback(GLFWwindow* window,
+                           double x, double y){
+  auto* st = AppState::gState;
+  st->mouse_x = x;
+  st->mouse_y = y;
 };
 #endif
