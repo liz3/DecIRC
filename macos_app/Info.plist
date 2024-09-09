@@ -44,5 +44,7 @@
     <string>12.6</string>
     <key>NSPrincipalClass</key>
     <string>NSApplication</string>
+    <key>CFBundleIconFile</key>
+    <string>DecIrc.icns</string>
 </dict>
 </plist>

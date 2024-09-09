@@ -156,6 +156,12 @@ void mouse_button_callback(GLFWwindow* window,
                            int mods){
 
   auto* st = AppState::gState;
+  if(action == 0) {
+    if(st->mouse_x >= (470.0 / 2) && st->mouse_x <= (470.0 /2)+(((float)st->window_width-490) / 2) && st->mouse_y >= ((float)st->window_height/2)-40 &&  st->mouse_y <= ((float)st->window_height / 2)-7) {
+          st->setTextReceiver(&st->components->chat_input);
+          return;
+    }
+  }
   if(st->current_mouse_receiver) {
     st->current_mouse_receiver->onMousePress(st->mouse_x, st->mouse_y, button, action);
   }
