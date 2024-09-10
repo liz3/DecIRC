@@ -224,12 +224,13 @@ void MessageList::onMousePress(double x, double y, int button, int action) {
   if(action != 0)
     return;
   auto* st = AppState::gState;
+    auto sc = st->window_scale;
   for(size_t i = 0; i < messages.size(); i++) {
     auto* message = messages[i];
     if(message->render_x == 0 || message->render_y == 0)
       continue;
-    float corrected_y = ((-message->render_y) + ((float)st->window_height / 2)) /2;
-    float corrected_height =  (message->height)  /2;
+    float corrected_y = ((-message->render_y) + ((float)st->window_height / 2)) /sc;
+    float corrected_height =  (message->height)  /sc;
     if(x >= message->render_x && x <= message->render_x + message->render_w && y >= corrected_y &&  y <= corrected_y + corrected_height) {
       selected_index = messages.size() - i - 1;
       AppState::gState->setTextReceiver(message);

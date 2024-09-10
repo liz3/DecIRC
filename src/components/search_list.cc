@@ -139,12 +139,13 @@ void SearchList::onMousePress(double x, double y, int button, int action) {
    if(action != 0)
     return;
   auto* st = AppState::gState;
+  auto sc = st->window_scale;
 
   for (size_t i = 0; i < filtered.size(); i++) {
     auto* entry = filtered[i];
     if(entry->y == 0)
       continue;
-       float corrected_y = ((-entry->y) + ((float)st->window_height / 2)) /2;
+       float corrected_y = ((-entry->y) + ((float)st->window_height / 2)) /sc;
       float corrected_x = entry->x + ((float)st->window_width / 2);
     if (x >= corrected_x && x <= corrected_x + entry->w && y <= corrected_y &&
         y >= corrected_y - st->atlas.effective_atlas_height + 10) {

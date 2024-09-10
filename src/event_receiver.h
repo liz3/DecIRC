@@ -6,16 +6,17 @@
 #include "AppState.h"
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
   glViewport(0, 0, width, height);
-
-#ifdef _WIN32
   float xscale, yscale;
   glfwGetWindowContentScale(window, &xscale, &yscale);
+  AppState::gState->window_scale = xscale;
+#ifdef _WIN32
   AppState::gState->window_width = width * xscale;
   AppState::gState->window_height = height * yscale;
 #else
   AppState::gState->window_width = width;
   AppState::gState->window_height = height;
 #endif
+
 };
 void window_focus_callback(GLFWwindow* window, int focused) {
   AppState::gState->focused = focused;
@@ -156,8 +157,9 @@ void mouse_button_callback(GLFWwindow* window,
                            int mods){
 
   auto* st = AppState::gState;
+  auto sc = st->window_scale;
   if(action == 0) {
-    if(st->mouse_x >= (470.0 / 2) && st->mouse_x <= (470.0 /2)+(((float)st->window_width-490) / 2) && st->mouse_y >= ((float)st->window_height/2)-40 &&  st->mouse_y <= ((float)st->window_height / 2)-7) {
+    if(st->mouse_x >= (470.0 / sc) && st->mouse_x <= (470.0 /sc)+(((float)st->window_width-490) / sc) && st->mouse_y >= ((float)st->window_height/sc)-40 &&  st->mouse_y <= ((float)st->window_height / sc)-7) {
           st->setTextReceiver(&st->components->chat_input);
           return;
     }

@@ -30,6 +30,7 @@ class AppState {
   uint32_t window_height = 720;
   uint32_t window_width = 1280;
   double mouse_x = 0, mouse_y = 0;
+  float window_scale = 1;
   bool focused = true;
   DecConfig config;
   static AppState* gState;
