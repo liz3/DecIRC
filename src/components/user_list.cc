@@ -9,7 +9,7 @@ bool UserList::canFocus() {
 }
 void UserList::onFocus(bool focus) {
   if (focus)
-    AppState::gState->setTextReceiver(&user_list);
+    AppState::gState->setTextReceiver(&user_list, &user_list);
 }
 
 void UserList::render(float window_width, float window_height) {
