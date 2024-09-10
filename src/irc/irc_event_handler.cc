@@ -380,7 +380,7 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
                 ? (ch.name + "@" + client->networkInfo.given_name)
                 : (chatMessage.source.getName() + " in " + ch.name + "@" +
                    client->networkInfo.given_name);
-        Notifications::sendNotification(header, IrcMessageUtil::stripMessage(chatMessage.content));
+        Notifications::sendNotification(header, IrcMessageUtil::stripMessage(chatMessage.content), ch.type == IrcChannelType::UserChannel);
       }
     }
     auto* holder = message_state.add_message(chatMessage, ch);

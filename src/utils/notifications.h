@@ -11,7 +11,9 @@ class WinToastHandlerExample : public IWinToastHandler {
   void toastActivated(int) const override;
   void toastDismissed(WinToastDismissalReason state) const override;
   void toastFailed() const override;
+
 };
+
 #endif
 #ifdef __APPLE__
 #include "notifications_macos/Notifications-C-Interface.h"
@@ -22,7 +24,7 @@ class WinToastHandlerExample : public IWinToastHandler {
 
 class Notifications {
  public:
-  static void sendNotification(const std::string& title, const std::string& body);
+  static void sendNotification(const std::string& title, const std::string& body, bool sound = false);
   static void init();
 };
 #endif

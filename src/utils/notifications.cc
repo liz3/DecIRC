@@ -4,18 +4,20 @@
 #include <codecvt>
 #endif
 
-void Notifications::sendNotification(const std::string& title, const std::string& body) {
+void Notifications::sendNotification(const std::string& title, const std::string& body, bool sound) {
 #ifdef _WIN32
   std::wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
   std::wstring wideTitle = converter.from_bytes(title);
   std::wstring wideBody = converter.from_bytes(body);
   WinToastTemplate templ(WinToastTemplate::Text02);
+  if(!sound)
+    templ.setAudioOption(WinToastTemplate::AudioOption::Silent);
   templ.setTextField(wideTitle, WinToastTemplate::FirstLine);
   templ.setTextField(wideBody, WinToastTemplate::SecondLine);
   WinToast::instance()->showToast(templ, new WinToastHandlerExample());
 #endif
 #ifdef __APPLE__
-  sendNotifToObjc((const char*)title.c_str(), (const char*)body.c_str());
+  sendNotifToObjc((const char*)title.c_str(), (const char*)body.c_str(), sound ? 1 : 0);
 #endif
 #ifdef __linux__
   NotifyNotification* n =
