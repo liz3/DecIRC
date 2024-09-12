@@ -15,6 +15,7 @@ public:
     json loadCache(const std::string& network, const std::string& channel);
     void saveCache(const std::string& network, const std::string& channel, json& list);
     int getCacheSize();
+    int getFontSize();
 #ifdef DEC_LIZ_PNG_UPLOAD
     std::string getPngUploadToken();
     void savePngUploadToken(std::string value);

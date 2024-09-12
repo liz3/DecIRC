@@ -100,6 +100,12 @@ int DecConfig::getCacheSize() {
         return rootConfig["cache_size"];
     return 500;
 }
+int DecConfig::getFontSize(){
+    load();
+    if(rootConfig.contains("font_size"))
+        return rootConfig["font_size"];
+    return 38;
+}
 void DecConfig::saveClients(std::vector<IrcClient*>& clients) {
     json cls;
     for(const auto* client : clients) {

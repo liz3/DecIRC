@@ -67,7 +67,7 @@ void RenderMessage::fetchImages() {
 }
 void RenderMessage::render(float x, float y, float w, bool selected) {
   if (selected) {
-    Box::render(x, y + (atlas_height -5), w, (-height), vec4f(0.1, 0.1, 0.1, 1));
+    Box::render(x, y + (atlas_height * 0.7), w, (-height), vec4f(0.25, 0.25, 0.25, 0.8));
   }
   render_w = w;
   render_y = y + atlas_height;

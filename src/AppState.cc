@@ -49,7 +49,7 @@ void AppState::start() {
     std::filesystem::path p = cwd / "assets" / "fonts" / r.first;
     fontPaths.push_back({p.generic_string(), r.second});
   }
-  atlas = FontAtlas(30, fontPaths);
+  atlas = FontAtlas(config.getFontSize(), fontPaths);
   atlas.valid = true;
   float xscale, yscale;
   glfwGetWindowContentScale(window, &xscale, &yscale);
@@ -90,7 +90,7 @@ void AppState::runGuiLoop() {
   setTextReceiver(&components->chat_input);
   current_mouse_receiver = &components->message_list;
   while (!glfwWindowShouldClose(window)) {
-    glClearColor(0.15, 0.15, 0.25, 1);
+    glClearColor(0.1, 0.1, 0.1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
     opengl_state.setResolution(window_width, window_height);

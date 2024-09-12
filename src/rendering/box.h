@@ -16,5 +16,12 @@ class Box {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glDrawArraysInstanced(GL_TRIANGLE_STRIP, 0, 6, (GLsizei)1);
   }
+  static void renderWithOutline(float x, float y, float w, float h, Vec4f color, float border_width, Vec4f border_color) {
+    Box::render(x,y,w,h,color);
+    Box::render(x,y,border_width, h, border_color);
+    Box::render(x,y,w, border_width, border_color);
+    Box::render(x+(w-border_width),y,border_width, h, border_color);
+    Box::render(x,y+(h-border_width),w, border_width, border_color);
+  }
 };
 #endif

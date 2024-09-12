@@ -25,14 +25,13 @@ int TextBox::computeHeight(float w, int preclude) {
       size++;
       currentAdvance = 0;
     } else {
-      auto adv = cp.type == 1
-                            ? (atlas->font_size * scale)
-                            : atlas->getAdvance(cp.cp, cp.style, scale);
+      auto adv = cp.type == 1 ? (atlas->font_size * scale)
+                              : atlas->getAdvance(cp.cp, cp.style, scale);
       if (currentAdvance + adv >= w) {
         size++;
         currentAdvance = 0;
       }
-        currentAdvance += adv;
+      currentAdvance += adv;
     }
   }
 
@@ -67,11 +66,11 @@ std::vector<RichChar>& TextBox::preprocess() {
         bold = !bold;
         continue;
       }
-       if (cp == 0x04) {
+      if (cp == 0x04) {
         i += 6;
         continue;
       }
-      if(cp == 0x16) {
+      if (cp == 0x16) {
         continue;
       }
       if (cp == 0x0F) {
@@ -116,32 +115,31 @@ std::vector<RichChar>& TextBox::preprocess() {
           next = text.data[i + 1];
         }
         if (next == ',') {
-          char after =  text.data[i + 2];
+          char after = text.data[i + 2];
           if (after >= '0' && after <= '9') {
-              i += 2;
-              std::string bg(1, (char)after);
-              after = text.data[i + 1];
-              if (after >= '0' && after <= '9') {
-                bg += after;
-                i += 1;
-              }
+            i += 2;
+            std::string bg(1, (char)after);
+            after = text.data[i + 1];
+            if (after >= '0' && after <= '9') {
+              bg += after;
+              i += 1;
+            }
           }
         }
         size_t cc = std::stoi(fg);
-        if(cc == 99) {
+        if (cc == 99) {
           color = false;
         } else {
-            color = true;
-            fg_color = IRC_COLORS[cc];
+          color = true;
+          fg_color = IRC_COLORS[cc];
         }
         continue;
-
       }
       if (bold)
         ch.style = "bold";
       else if (italics)
         ch.style = "italic";
-      if(bold && italics)
+      if (bold && italics)
         ch.style = "bold_italic";
       if (color)
         ch.color = fg_color;
@@ -207,8 +205,12 @@ void TextBox::render(float x, float y, float w, float h) {
     }
   }
   if (background.w > 0) {
-    Box::render(x, y + atlas->effective_atlas_height + 10, w, -(h + 20),
-                background);
+    if (renderCursor)
+      Box::renderWithOutline(x, y + (atlas->effective_atlas_height * scale) * scale, w,
+                             -(h + (atlas->effective_atlas_height * scale)), background, 1, vec4f(0.75, 0.75, 0.75, 11));
+    else
+      Box::render(x, y + (atlas->effective_atlas_height * scale) * scale, w, -(h + (atlas->effective_atlas_height * scale)),
+                  background);
   }
   m_shader->shader.use();
   m_shader->bindVertexArray();
@@ -242,7 +244,7 @@ void TextBox::render(float x, float y, float w, float h) {
       continue;
     }
     auto charAdv = cp.type == 1 ? (atlas->font_size * scale)
-                               : atlas->getAdvance(cp.cp, cp.style, scale);
+                                : atlas->getAdvance(cp.cp, cp.style, scale);
     if (w > 0 && offset + charAdv >= w) {
       if (strikethrough.active) {
         renderLine(strikethrough.startX, x + offset,

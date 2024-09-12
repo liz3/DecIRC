@@ -1,6 +1,9 @@
 #ifndef LA_H_
 #define LA_H_
 
+#include <stdint.h>
+
+
 struct Vec2f {
   float x, y;
 };
@@ -30,6 +33,7 @@ struct Vec4f {
 };
 
 Vec4f vec4f(float x, float y, float z, float w);
+Vec4f vec4fFromRgb(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255);
 Vec4f vec4fs(float x);
 Vec4f vec4f_add(Vec4f a, Vec4f b);
 Vec4f vec4f_sub(Vec4f a, Vec4f b);
