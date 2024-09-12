@@ -74,7 +74,7 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
   title_box.render(x, y, 0, 0);
   // y -= atlas_height;
   size_t offset = 300;
-  render_x = x + offset;
+  render_x = x;
 
   box.render(x + offset, y, w - offset, 0);
     if(selected) {
@@ -231,7 +231,8 @@ void MessageList::onMousePress(double x, double y, int button, int action) {
       continue;
     float corrected_y = ((-message->render_y) + ((float)st->window_height / 2)) /sc;
     float corrected_height =  (message->height)  /sc;
-    if(x >= message->render_x && x <= message->render_x + message->render_w && y >= corrected_y &&  y <= corrected_y + corrected_height) {
+    float corrected_x =  (message->render_x + ((float)st->window_width / 2)) / sc;
+    if(x >=corrected_x && x <= corrected_x + message->render_w && y >= corrected_y &&  y <= corrected_y + corrected_height) {
       selected_index = messages.size() - i - 1;
       AppState::gState->setTextReceiver(message);
       break;
