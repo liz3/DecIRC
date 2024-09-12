@@ -55,6 +55,7 @@ void AppState::start() {
   glfwGetWindowContentScale(window, &xscale, &yscale);
   window_width *= xscale;
   window_height *= yscale;
+  window_scale = xscale;
 
   auto c = GuiComponents(this);
   c.init();
