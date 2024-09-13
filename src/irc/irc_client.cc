@@ -1,6 +1,7 @@
 #include "irc_client.h"
 #include <iostream>
 #include <chrono>
+#include <string>
 #include "IncomingMessage.h"
 #include "stream_reader.h"
 
@@ -27,11 +28,46 @@ void IrcClient::connect() {
     IrcMessageUser user(username, realname);
     write(user);
     state = IrcClient::ConnectionState::Connected;
+    last_ping = std::chrono::system_clock::now();
+    bool emittedError = false;
     while (state != ConnectionState::Connecting &&
            state != ConnectionState::Disconnected) {
+      auto now = std::chrono::system_clock::now();
+      const auto diff = now - last_ping;
+      if (diff > std::chrono::seconds(65)) {
+        while (true) {
+          if (!emittedError) {
+            ircErrorHandler(this);
+            emittedError = true;
+          }
+          socket->close();
+          delete socket;
+          socket = new IrcSocket(host, port, useTLS, verifySSL);
+          if (socket->isConnected() || state == ConnectionState::Disconnected)
+            break;
+          std::this_thread::sleep_for(std::chrono::milliseconds(25));
+        }
+        emittedError = false;
+        if (state == ConnectionState::Disconnected)
+          break;
+        if (password.length()) {
+          IrcMessagePass passMsg(password);
+          write(passMsg);
+        }
+        IrcMessageNick nickMsg(nick);
+        write(nickMsg);
+        IrcMessageUser user(username, realname);
+        write(user);
+        state = IrcClient::ConnectionState::Connected;
+        last_ping = std::chrono::system_clock::now();
+        send_ping = false;
+      } else if (diff > std::chrono::seconds(60) && !send_ping) {
+        send_ping = true;
+        write("PING " + std::to_string(time(NULL)));
+      }
       std::string out = socket->read();
       if (out.length() == 0) {
-         std::this_thread::sleep_for(std::chrono::milliseconds(5));
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
         continue;
       }
       recv_buff += out;
@@ -116,7 +152,10 @@ void IrcClient::handleMessage(std::string raw) {
   }
   reader.skip(1);
   message.parameters = reader.readUntilEnd();
-
+  if (message.command == "PING" || message.command == "PONG") {
+    send_ping = false;
+  }
+  last_ping = std::chrono::system_clock::now();
   ircMessageListener(message, this, handleCommand(message));
 }
 //<:Nay!jeda@hellomouse/dev/cryb.jeda PRIVMSG Liz3 :derp
@@ -130,6 +169,9 @@ IrcChannelType IrcClient::readChannelType(char c) {
 }
 void IrcClient::setCallback(const OnIrcMessage& cb) {
   ircMessageListener = cb;
+}
+void IrcClient::setErrorCallback(const OnIrcDisconnect& cb) {
+  ircErrorHandler = cb;
 }
 void IrcClient::write(std::string final_cmd) {
   std::string msg = final_cmd + "\r\n";
@@ -158,15 +200,15 @@ IrcClient::~IrcClient() {
   disconnect();
 }
 bool IrcClient::isChannelMode(char ch) {
-  for(const char c : channelModes) {
-    if(c == ch)
+  for (const char c : channelModes) {
+    if (c == ch)
       return true;
   }
   return false;
 }
 bool IrcClient::isPrefix(char ch) {
-  for(const char c : prefixes) {
-    if(c == ch)
+  for (const char c : prefixes) {
+    if (c == ch)
       return true;
   }
   return false;

@@ -4,6 +4,7 @@
 #include <thread>
 #include <vector>
 #include <map>
+#include <chrono>
 #include "irc_socket.h"
 #include "irc_messages.hpp"
 #include "IncomingMessage.h"
@@ -64,7 +65,8 @@ struct WhoIsEntry {
 class IrcClient {
   using OnIrcMessage =
       std::function<void(const IncomingMessage, IrcClient*, UiImpact)>;
-
+  using OnIrcDisconnect =
+      std::function<void(IrcClient*)>;
  public:
   enum ConnectionState {
     Idle,
@@ -77,6 +79,7 @@ class IrcClient {
   IrcClient(std::string host);
   IrcClient(std::string host, bool useTLS);
   void setCallback(const OnIrcMessage&);
+  void setErrorCallback(const OnIrcDisconnect&);
   ~IrcClient();
   void write(std::vector<std::string> arguments);
   void write(IrcMessage& msg);
@@ -117,11 +120,14 @@ class IrcClient {
 
  private:
   OnIrcMessage ircMessageListener;
+  OnIrcDisconnect ircErrorHandler;
   std::string recv_buff;
   void handleMessage(std::string message);
   UiImpact handleCommand(IncomingMessage&);
   ConnectionState state = ConnectionState::Idle;
   std::thread* connection_thread = nullptr;
   IrcSocket* socket = nullptr;
+  bool send_ping = false;
+  std::chrono::time_point<std::chrono::system_clock> last_ping;
 };
 #endif

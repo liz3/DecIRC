@@ -244,7 +244,6 @@ void FontAtlas::lazyLoadCharacter(FontEntry* fe, int32_t cp, std::string type) {
   if (fe->hasColor)
     f |= FT_LOAD_COLOR;
   if (FT_Load_Char(face, cp, f)) {
-    std::cout << "Failed to load char: " << (int32_t)cp << "\n";
     return;
   }
   bool increased_size = false;
@@ -378,7 +377,6 @@ float FontAtlas::getAdvance(int32_t cp, std::string type, float scale) {
       if(backup_key.length()) {
         target_type = backup_key;
       } else {
-      std::cout << "load failed: " << std::hex << cp << "\n";
       return 0;
       }
     }

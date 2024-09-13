@@ -42,20 +42,32 @@ void IrcEventHandler::addNetwork(IrcClient* client) {
   components->network_list.setItems(&network_items);
   client->setCallback([this](const IncomingMessage& msg, IrcClient* client,
                              UiImpact impact) { processMessage(msg, client); });
-  if(client->autoConnect) {
-  addChannel(client, client->networkInfo.given_name);
-  client->connect();
-  for (auto& entry : network_items) {
-    if (reinterpret_cast<IrcClient*>(entry.user_data) == client) {
-      entry.name = "..." + client->networkInfo.given_name;
-      break;
+  client->setErrorCallback([this](IrcClient* client) {
+     components->runLater(new std::function(
+        [this, client]() { 
+            for (auto& entry : network_items) {
+      if (reinterpret_cast<IrcClient*>(entry.user_data) == client) {
+        entry.name = "..." + client->networkInfo.given_name;
+        break;
+      }
+    }
+     }));
+
+  });
+  if (client->autoConnect) {
+    addChannel(client, client->networkInfo.given_name);
+    client->connect();
+    for (auto& entry : network_items) {
+      if (reinterpret_cast<IrcClient*>(entry.user_data) == client) {
+        entry.name = "..." + client->networkInfo.given_name;
+        break;
+      }
     }
   }
 }
-}
 void IrcEventHandler::persistChannels() {
-  for(auto* client : active_networks) {
-    for(auto& chann : client->getJoinedChannels()) {
+  for (auto* client : active_networks) {
+    for (auto& chann : client->getJoinedChannels()) {
       message_state.persistChannel(&chann.second);
     }
   }
@@ -380,7 +392,9 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
                 ? (ch.name + "@" + client->networkInfo.given_name)
                 : (chatMessage.source.getName() + " in " + ch.name + "@" +
                    client->networkInfo.given_name);
-        Notifications::sendNotification(header, IrcMessageUtil::stripMessage(chatMessage.content), ch.type == IrcChannelType::UserChannel);
+        Notifications::sendNotification(
+            header, IrcMessageUtil::stripMessage(chatMessage.content),
+            ch.type == IrcChannelType::UserChannel);
       }
     }
     auto* holder = message_state.add_message(chatMessage, ch);
@@ -473,7 +487,7 @@ void IrcEventHandler::addChannel(IrcClient* client, std::string name) {
   channel.client = client;
   channel.type = type;
   channel.name = name;
-  if(client->notifyMap.count(name))
+  if (client->notifyMap.count(name))
     channel.notify = client->notifyMap[name];
   joinedChannels[name] = channel;
   if (active_network == client)
@@ -491,7 +505,7 @@ void IrcEventHandler::populateChannels(IrcClient* active) {
       SearchItem item;
       item.user_data = &ch;
       item.name = ch.name;
-      if(ch.notify) {
+      if (ch.notify) {
         item.name = "*" + ch.name;
       }
       channel_items.push_back(item);
@@ -569,9 +583,10 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
     } else if (command == "NOTIFY") {
       if (active_channel_ptr) {
         active_channel_ptr->notify = !active_channel_ptr->notify;
-        active_network->notifyMap[active_channel_ptr->name] = active_channel_ptr->notify;
+        active_network->notifyMap[active_channel_ptr->name] =
+            active_channel_ptr->notify;
         AppState::gState->config.saveClients(active_networks);
-         populateChannels(active_network); 
+        populateChannels(active_network);
       }
     }
     if (active_network) {
@@ -588,7 +603,7 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
           active_network->nameSearch.clear();
         }
         if (command == "PART" && channels.length() == 0) {
-          if(active_channel_ptr)
+          if (active_channel_ptr)
             channels = active_channel_ptr->name;
         }
         std::vector<std::string> args = {command, channels};
@@ -662,13 +677,12 @@ void IrcEventHandler::sendChannelMessage(std::string content) {
   components->chat_input.text.setData("");
 }
 void IrcEventHandler::loadChannel(IrcChannel* ch, bool removePopover) {
-
   if (active_network == ch->client && active_channel_ptr == ch) {
     return;
   }
-  if(removePopover)
+  if (removePopover)
     AppState::gState->components->setActivePopover(nullptr);
-  if (active_network != ch->client){
+  if (active_network != ch->client) {
     active_network = ch->client;
     populateChannels(active_network);
   }
@@ -692,7 +706,8 @@ void IrcEventHandler::itemSelected(std::string type, const SearchItem* item) {
     }
     active_network = p;
     populateChannels(p);
-    AppState::gState->setTextReceiver(&components->channel_list, &components->channel_list);
+    AppState::gState->setTextReceiver(&components->channel_list,
+                                      &components->channel_list);
     components->root_list_display = 3;
 
   } else if (type == "channel") {
@@ -720,14 +735,13 @@ void IrcEventHandler::query(std::string& name) {
 void IrcEventHandler::updateActiveChannel() {}
 
 void IrcEventHandler::initQuickSearch() {
-    std::vector<IrcChannel*> channels;
-    for(auto& entry : active_networks) {
-      for(auto& ch : entry->getJoinedChannels())
-        channels.push_back(&ch.second);
-    }
-      components->channels_popover.initQuickSearch(channels);
-      this->components->setActivePopover(&components->channels_popover);
- 
+  std::vector<IrcChannel*> channels;
+  for (auto& entry : active_networks) {
+    for (auto& ch : entry->getJoinedChannels())
+      channels.push_back(&ch.second);
+  }
+  components->channels_popover.initQuickSearch(channels);
+  this->components->setActivePopover(&components->channels_popover);
 }
 
 void IrcEventHandler::activateChannel(IrcChannel* ch) {
@@ -781,7 +795,8 @@ void IrcEventHandler::uploadPngFile() {
   ix::WebSocketHttpHeaders headers;
   DecConfig& config = AppState::gState->config;
   headers["Authorization"] = config.getPngUploadToken();
-      headers["Content-Type"] = "multipart/form-data; boundary=----" + formData.boundary;
+  headers["Content-Type"] =
+      "multipart/form-data; boundary=----" + formData.boundary;
   std::string url = "https://" + config.getPngUploadHost() + "/add/0";
   auto req = httpClient.createRequest(url, "POST");
   req->body = formData.data;
@@ -805,9 +820,9 @@ void IrcEventHandler::uploadPngFile() {
         auto& channelMessages = ch.messages;
         channelMessages.push_back(msg);
         auto* holder = message_state.add_message(msg, ch);
-          components->runLater(
-        new std::function([holder, this]() {  components->message_list.addContent(holder); }));
-       
+        components->runLater(new std::function(
+            [holder, this]() { components->message_list.addContent(holder); }));
+
         active_network->write(msg);
       }
     }
