@@ -36,6 +36,7 @@ class AppState {
   static AppState* gState;
   OpenGLState opengl_state;
   std::filesystem::path cwd;
+  std::string start_url;
   AppState(std::filesystem::path cwd);
   void start();
   Vec2f getPositionAbsolute(float x, float y, float w, float h);

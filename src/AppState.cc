@@ -4,6 +4,7 @@
 #include "gui_components.h"
 #include "event_receiver.h"
 #include "./utils/notifications.h"
+#include "utils/url_handler.h"
 
 #include "../third-party/glfw/include/GLFW/glfw3.h"
 
@@ -63,6 +64,9 @@ void AppState::start() {
   client = create_irc_event_handler();
   client->init(components);
   components->chat_input.client = client;
+  UrlHandler urlHandler(client, &config);
+  if(start_url.length())
+    urlHandler.handle(start_url.c_str());
   runGuiLoop();
   client->persistChannels();
   client->closeAll();

@@ -1,4 +1,7 @@
 #include "AppState.h"
+#ifdef __linux___
+#include "utils/url_handler.h" 
+#endif
 #include <filesystem>
 int main(int argc, char** argv) {
 #ifdef _WIN32
@@ -12,6 +15,14 @@ int main(int argc, char** argv) {
   auto cwd = std::filesystem::current_path();
 #endif
   AppState app(cwd);
+  if(argc > 1) {
+    #ifdef __linux___
+      if(UrlHandler::maybeSend(argv[1])) {
+        return 0;
+      }
+    #endif
+      app.start_url = std::string(argv[1]);
+  }
   app.start();
   return 0;
 }

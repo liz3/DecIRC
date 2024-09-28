@@ -242,7 +242,11 @@ void IrcEventHandler::processMessage(const IncomingMessage& msg,
   if (msg.isNumericCommand) {
     if (msg.numericCommand == 1) {
       client->networkInfo.network_name = msg.source.host;
+       for(auto& entry : client->preJoin)
+        client->write({"JOIN", entry});
+      client->preJoin.clear();
       components->runLater(new std::function([this, client]() {
+         
         for (auto& entry : network_items) {
           if (reinterpret_cast<IrcClient*>(entry.user_data) == client) {
             entry.color = vec4fs(1);

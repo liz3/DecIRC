@@ -95,6 +95,7 @@ class IrcClient {
   std::string username;
   std::string realname;
   std::unordered_map<std::string, bool> notifyMap;
+  std::vector<std::string> preJoin;
 
   std::string host;
   uint16_t port = 6697;
