@@ -67,7 +67,7 @@ void AppState::start() {
   UrlHandler urlHandler(client, &config);
   if(start_url.length())
     urlHandler.handle(start_url.c_str());
-  runGuiLoop();
+  runGuiLoop(&urlHandler);
   client->persistChannels();
   client->closeAll();
 }
@@ -90,10 +90,15 @@ void AppState::setTextReceiver(TextReceiver* recv, MouseReceiver* mouse_recv) {
 void AppState::emptyEvent() {
   glfwPostEmptyEvent();
 }
-void AppState::runGuiLoop() {
+void AppState::runGuiLoop(UrlHandler* handler) {
   setTextReceiver(&components->chat_input);
   current_mouse_receiver = &components->message_list;
   while (!glfwWindowShouldClose(window)) {
+#ifdef __linux__
+    handler->tick();
+#else
+    (void)handler;
+#endif
     glClearColor(0.1, 0.1, 0.1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 

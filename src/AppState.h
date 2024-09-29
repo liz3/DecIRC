@@ -20,13 +20,15 @@ class GLFWwindow;
 #endif
 #include "utils/config.h"
 
+class UrlHandler;
+
 class AppState {
  public:
   GLFWwindow* window;
   FontAtlas atlas;
   IrcEventHandler* client;
   GuiComponents* components;
-  void runGuiLoop();
+  void runGuiLoop(UrlHandler*);
   uint32_t window_height = 720;
   uint32_t window_width = 1280;
   double mouse_x = 0, mouse_y = 0;

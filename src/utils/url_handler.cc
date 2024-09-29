@@ -46,7 +46,10 @@ void UrlHandler::tick() {
   struct timeval tv;
   tv.tv_sec = 0;
   tv.tv_usec = 1000 * 35;
-  if (select(1, &sock_fd, NULL, NULL, &tv) > 0) {
+  fd_set set;
+  FD_ZERO(&set);
+  FD_SET(sock_fd, &set);
+  if (select(sock_fd+1, &set, NULL, NULL, &tv) > 0) {
     unsigned int sock_len = 0;
     int client = accept(sock_fd, (struct sockaddr*)&remote, &sock_len);
     char recv_buffer[4096];
@@ -58,7 +61,7 @@ void UrlHandler::tick() {
     close(client);
   }
 }
-static bool UrlHandler::maybeSend(const char* url) {
+bool UrlHandler::maybeSend(const char* url) {
   std::string socket_path = "/tmp/decirc.sock";
   if (!std::filesystem::exists(socket_path)) {
     return false;
@@ -67,12 +70,14 @@ static bool UrlHandler::maybeSend(const char* url) {
   int data_len = 0;
   struct sockaddr_un remote;
   if ((sock = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+    std::cout << "socket\n";
     return false;
   }
   remote.sun_family = AF_UNIX;
   strcpy(remote.sun_path, socket_path.c_str());
   if (connect(sock, (struct sockaddr*)&remote,
               strlen(remote.sun_path) + sizeof(remote.sun_family)) == -1) {
+    std::cout << "connect\n";
     return false;
   }
   send(sock, url, strlen(url) + 1, 0);

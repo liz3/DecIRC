@@ -1,5 +1,5 @@
 #include "AppState.h"
-#ifdef __linux___
+#ifdef __linux__
 #include "utils/url_handler.h" 
 #endif
 #include <filesystem>
@@ -16,7 +16,7 @@ int main(int argc, char** argv) {
 #endif
   AppState app(cwd);
   if(argc > 1) {
-    #ifdef __linux___
+    #ifdef __linux__
       if(UrlHandler::maybeSend(argv[1])) {
         return 0;
       }
