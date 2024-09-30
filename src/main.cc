@@ -1,7 +1,4 @@
 #include "AppState.h"
-#if defined(__linux__) || defined(_WIN32)
-#include "utils/url_handler.h" 
-#endif
 #include <filesystem>
 int main(int argc, char** argv) {
 #ifdef _WIN32

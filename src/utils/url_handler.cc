@@ -4,7 +4,6 @@
 #include "../irc/stream_reader.h"
 #include "url_parser.h"
 #include "config.h"
-#include <filesystem>
 
 UrlHandler* g_url_handler_instance = nullptr;
 
@@ -46,11 +45,11 @@ UrlHandler::UrlHandler(IrcEventHandler* client_, DecConfig* config_)
 }
 UrlHandler::~UrlHandler() {
 #if defined(__linux__) || defined(_WIN32)
- #ifdef _WIN32
+#ifdef _WIN32
   closesocket(sock_fd);
 #else
   close(sock_fd);
- #endif
+#endif
   unlink(socket_path.c_str());
 #endif
 }
@@ -62,12 +61,12 @@ void UrlHandler::tick() {
   fd_set set;
   FD_ZERO(&set);
   FD_SET(sock_fd, &set);
-  if (select(sock_fd+1, &set, NULL, NULL, &tv) > 0) {
+  if (select(sock_fd + 1, &set, NULL, NULL, &tv) > 0) {
 #ifdef _WIN32
-      int sock_len = 0;
+    int sock_len = 0;
     SOCKET client = accept(sock_fd, nullptr, nullptr);
 #else
-      unsigned int sock_len = 0;
+    unsigned int sock_len = 0;
     int client = accept(sock_fd, (struct sockaddr*)&remote, &sock_len);
 
 #endif

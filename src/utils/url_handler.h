@@ -17,19 +17,19 @@
 class DecConfig;
 
 class UrlHandler {
-private:
-    IrcEventHandler* client;
-    DecConfig* config;
+ private:
+  IrcEventHandler* client;
+  DecConfig* config;
 #if defined(__linux__) || defined(_WIN32)
-    std::string socket_path = "/tmp/decirc.sock";
-    int sock_fd;
+  std::string socket_path = "/tmp/decirc.sock";
+  int sock_fd;
 #ifdef _WIN32
-     sockaddr_un local, remote;
+  sockaddr_un local, remote;
 #else
-    struct sockaddr_un local, remote;
+  struct sockaddr_un local, remote;
 #endif
 #endif
-public:
+ public:
   UrlHandler(IrcEventHandler* client_, DecConfig* config_);
   ~UrlHandler();
   void handle(const char*);
@@ -38,6 +38,5 @@ public:
   static bool maybeSend(const char*);
 #endif
 };
-
 
 #endif
