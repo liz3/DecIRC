@@ -15,6 +15,12 @@ AppState::AppState(std::filesystem::path cwd)
 }
 void AppState::start() {
   Notifications::init();
+  client = create_irc_event_handler();
+#if defined(__linux__) || defined(_WIN32)
+  if (start_url.length() && UrlHandler::maybeSend(start_url.c_str())) {
+    return;
+  }
+#endif
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -61,7 +67,6 @@ void AppState::start() {
   auto c = GuiComponents(this);
   c.init();
   components = &c;
-  client = create_irc_event_handler();
   client->init(components);
   components->chat_input.client = client;
   UrlHandler urlHandler(client, &config);
@@ -94,7 +99,7 @@ void AppState::runGuiLoop(UrlHandler* handler) {
   setTextReceiver(&components->chat_input);
   current_mouse_receiver = &components->message_list;
   while (!glfwWindowShouldClose(window)) {
-#ifdef __linux__
+#if defined(__linux__) || defined(_WIN32)
     handler->tick();
 #else
     (void)handler;

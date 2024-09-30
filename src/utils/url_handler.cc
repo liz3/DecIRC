@@ -19,16 +19,25 @@ UrlHandler::UrlHandler(IrcEventHandler* client_, DecConfig* config_)
 #ifdef __APPLE__
     global_start_protocol_handler();
 #endif
-#ifdef __linux__
+#if defined(__linux__) || defined(_WIN32)
+#ifdef _WIN32
+    socket_path = std::string(std::getenv("TEMP")) + "\\decirc.sock";
+#endif
     sock_fd = socket(AF_UNIX, SOCK_STREAM, 0);
     local.sun_family = AF_UNIX;
     strcpy(local.sun_path, socket_path.c_str());
     unlink(local.sun_path);
+#ifdef _WIN32
+    if (bind(sock_fd, (struct sockaddr*)&local, sizeof(local)) < 0) {
+#else
     if (bind(sock_fd, (struct sockaddr*)&local,
              strlen(local.sun_path) + sizeof(local.sun_family)) != 0) {
+#endif
+      std::cout << "Bind failed\n";
       return;
     }
     if (listen(sock_fd, 5) != 0) {
+      std::cout << "listen failed\n";
       return;
     }
 #endif
@@ -36,12 +45,16 @@ UrlHandler::UrlHandler(IrcEventHandler* client_, DecConfig* config_)
   g_url_handler_instance = this;
 }
 UrlHandler::~UrlHandler() {
-#ifdef __linux__
+#if defined(__linux__) || defined(_WIN32)
+ #ifdef _WIN32
+  closesocket(sock_fd);
+#else
   close(sock_fd);
+ #endif
   unlink(socket_path.c_str());
 #endif
 }
-#ifdef __linux__
+#if defined(__linux__) || defined(_WIN32)
 void UrlHandler::tick() {
   struct timeval tv;
   tv.tv_sec = 0;
@@ -50,22 +63,41 @@ void UrlHandler::tick() {
   FD_ZERO(&set);
   FD_SET(sock_fd, &set);
   if (select(sock_fd+1, &set, NULL, NULL, &tv) > 0) {
-    unsigned int sock_len = 0;
+#ifdef _WIN32
+      int sock_len = 0;
+    SOCKET client = accept(sock_fd, nullptr, nullptr);
+#else
+      unsigned int sock_len = 0;
     int client = accept(sock_fd, (struct sockaddr*)&remote, &sock_len);
+
+#endif
     char recv_buffer[4096];
+
     int data_recv = recv(client, recv_buffer, sizeof(recv_buffer), 0);
-    if (data_recv) {
+    if (data_recv > 0) {
       handle(recv_buffer);
       send(client, "received", 8, 0);
     }
+#ifdef _WIN32
+    closesocket(client);
+#else
     close(client);
+#endif
   }
 }
 bool UrlHandler::maybeSend(const char* url) {
+#ifdef _WIN32
+  std::string socket_path = std::string(std::getenv("TEMP")) + "\\decirc.sock";
+  if (INVALID_FILE_ATTRIBUTES == GetFileAttributes(socket_path.c_str()) &&
+      GetLastError() == ERROR_FILE_NOT_FOUND) {
+    return false;
+  }
+#else
   std::string socket_path = "/tmp/decirc.sock";
   if (!std::filesystem::exists(socket_path)) {
     return false;
   }
+#endif
   int sock = 0;
   int data_len = 0;
   struct sockaddr_un remote;
@@ -84,11 +116,21 @@ bool UrlHandler::maybeSend(const char* url) {
 
   char recv_data[9];
   recv_data[8] = 0x00;
-  if (recv(sock, recv_data, 8, 0) != 8) {
+  int res = recv(sock, recv_data, 8, 0);
+  if (res != 8) {
+    std::cout << "receive\n";
+#ifdef _WIN32
+    closesocket(sock);
+#else
     close(sock);
+#endif
     return false;
   }
+#ifdef _WIN32
+  closesocket(sock);
+#else
   close(sock);
+#endif
   std::string str(recv_data);
   return str == "received";
 }

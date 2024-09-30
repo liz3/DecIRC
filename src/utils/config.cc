@@ -113,7 +113,12 @@ std::string DecConfig::getFallbackUserName() {
   load();
   if (rootConfig.contains("default_nick"))
     return rootConfig["default_nick"];
+#ifdef _WIN32
+  return std::getenv("USERNAME");
+
+#else
   return std::getenv("USER");
+#endif
 }
 void DecConfig::saveClients(std::vector<IrcClient*>& clients) {
   json cls;
