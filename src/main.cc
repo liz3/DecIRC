@@ -12,6 +12,9 @@ int main(int argc, char** argv) {
   auto cwd = std::filesystem::current_path();
 #endif
   AppState app(cwd);
+  if(argc > 1) {
+      app.start_url = std::string(argv[1]);
+  }
   app.start();
   return 0;
 }

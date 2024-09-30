@@ -20,13 +20,15 @@ class GLFWwindow;
 #endif
 #include "utils/config.h"
 
+class UrlHandler;
+
 class AppState {
  public:
   GLFWwindow* window;
   FontAtlas atlas;
   IrcEventHandler* client;
   GuiComponents* components;
-  void runGuiLoop();
+  void runGuiLoop(UrlHandler*);
   uint32_t window_height = 720;
   uint32_t window_width = 1280;
   double mouse_x = 0, mouse_y = 0;
@@ -36,6 +38,7 @@ class AppState {
   static AppState* gState;
   OpenGLState opengl_state;
   std::filesystem::path cwd;
+  std::string start_url;
   AppState(std::filesystem::path cwd);
   void start();
   Vec2f getPositionAbsolute(float x, float y, float w, float h);

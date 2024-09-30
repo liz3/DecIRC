@@ -44,7 +44,7 @@ set(DEC_SOURCES src/irc/irc_socket.cc
   src/irc/irc_event_handler.cc src/irc/image_cache.cc 
   src/irc/message_state.cc src/irc/message_util.cc third-party/png/lodepng.cpp
   third-party/gifdec/gifdec.c src/components/image_overlay.cc 
-  src/utils/notifications.cc src/utils/config.cc src/utils/web_util.cc)
+  src/utils/notifications.cc src/utils/config.cc src/utils/web_util.cc src/utils/url_handler.cc src/utils/url_parser.cc)
 
 if(WIN32)
   list(APPEND DEC_SOURCES
@@ -53,7 +53,9 @@ if(WIN32)
 endif()
 if(APPLE)
   list(APPEND DEC_SOURCES
-    src/utils/notifications_macos/MacNotifications.mm)
+    src/utils/notifications_macos/MacNotifications.mm
+    src/utils/notifications_macos/ProtocolHandler.mm
+    )
 endif()
 
 option(DEC_LIZ_PNG_UPLOAD "Add the code for my personal png upload" OFF)
@@ -116,7 +118,7 @@ set(OPENSSL_LIBRARIES crypto ssl)
 
 add_subdirectory(third-party/IXWebSocket)
 if(APPLE)
-  target_link_libraries(DecIrc PUBLIC "-framework Foundation -framework Cocoa")
+  target_link_libraries(DecIrc PUBLIC "-framework Foundation -framework Cocoa -framework Carbon")
   add_definitions(-DDEC_MAC_PATH_BASE)
 endif()
 if(WIN32)

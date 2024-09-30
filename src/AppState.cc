@@ -4,6 +4,7 @@
 #include "gui_components.h"
 #include "event_receiver.h"
 #include "./utils/notifications.h"
+#include "utils/url_handler.h"
 
 #include "../third-party/glfw/include/GLFW/glfw3.h"
 
@@ -14,6 +15,12 @@ AppState::AppState(std::filesystem::path cwd)
 }
 void AppState::start() {
   Notifications::init();
+  client = create_irc_event_handler();
+#if defined(__linux__) || defined(_WIN32)
+  if (start_url.length() && UrlHandler::maybeSend(start_url.c_str())) {
+    return;
+  }
+#endif
   glfwInit();
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -60,10 +67,12 @@ void AppState::start() {
   auto c = GuiComponents(this);
   c.init();
   components = &c;
-  client = create_irc_event_handler();
   client->init(components);
   components->chat_input.client = client;
-  runGuiLoop();
+  UrlHandler urlHandler(client, &config);
+  if(start_url.length())
+    urlHandler.handle(start_url.c_str());
+  runGuiLoop(&urlHandler);
   client->persistChannels();
   client->closeAll();
 }
@@ -86,10 +95,15 @@ void AppState::setTextReceiver(TextReceiver* recv, MouseReceiver* mouse_recv) {
 void AppState::emptyEvent() {
   glfwPostEmptyEvent();
 }
-void AppState::runGuiLoop() {
+void AppState::runGuiLoop(UrlHandler* handler) {
   setTextReceiver(&components->chat_input);
   current_mouse_receiver = &components->message_list;
   while (!glfwWindowShouldClose(window)) {
+#if defined(__linux__) || defined(_WIN32)
+    handler->tick();
+#else
+    (void)handler;
+#endif
     glClearColor(0.1, 0.1, 0.1, 1);
     glClear(GL_COLOR_BUFFER_BIT);
 
