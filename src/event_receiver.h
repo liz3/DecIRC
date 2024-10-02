@@ -106,6 +106,11 @@ void key_callback(GLFWwindow* window,
       st->setTextReceiver(&st->components->chat_input);
 
       return;
+    }else if (isPress && key == GLFW_KEY_SLASH) {
+      st->components->search.text.setData("");
+      st->components->setActivePopover(&st->components->search);
+      st->setTextReceiver(&st->components->search);
+      return;
     }else if (isPress && key == GLFW_KEY_U) {
       st->components->message_list.changeScroll(-25);
       return;

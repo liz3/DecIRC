@@ -71,6 +71,9 @@ class MessageList : public Component,  public MouseReceiver  {
   float height = 0.0;
   float current_offset = 0.0;
   float available_height = 0.0;
+  std::string lastSearch;
+  int search_index = -1;
+  RenderMessage* search_result = nullptr;
   float width = 500;
   int32_t selected_index = -1;
   RenderMessage* addContent(MessageHolder* h, bool prepend = false);

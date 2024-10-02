@@ -22,10 +22,9 @@ class TextField : public TextReceiver {
   void addText(std::string text) override;
   std::string getText() override;
   void setOnChangeCb(const OnEnterCallback& cb);
-  TextWithState text;
-  TextBox box;
+  TextWithState text, placeHolderText;
+  TextBox box, placeHolderBox;
   OnEnterCallback enter_cb;
-
  private:
   OnEnterCallback on_change_cb;
   bool has_change_cb = false;

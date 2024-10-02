@@ -2,6 +2,7 @@
 #include "AppState.h"
 
 void GuiComponents::init() {
+  search.placeHolderText.setData("Search");
   chat_input.text.setData("");
   chat_input.box.background = vec4f(0.15, 0.15, 0.15, 1.0);
   chat_input.box.allowGrow = true;
@@ -57,11 +58,11 @@ void GuiComponents::render() {
   message_list.setWidth(window_width - 490);
   message_list.setAvailableHeight(window_height - 80 - 140);
   message_list.render(470, 80, 0, 0);
-  chat_input.render(470, window_height - 85,
+    chat_input.render(470, window_height - 85,
                     window_width - 490, 60);
   if (header_text.data.size()) {
     auto abs = state->getPositionAbsolute(window_width - (window_width - 470),
-                                          -15, window_width - 490, 50);
+                                          -18, window_width - 490, 50);
     header_comp.render(abs.x, abs.y, window_width - 490, 45);
     abs = state->getPositionAbsolute(window_width - (window_width - 470),
                                           50, window_width - 490, 15);

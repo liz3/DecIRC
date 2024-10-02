@@ -2,7 +2,11 @@
 #include "../../third-party/glfw/include/GLFW/glfw3.h"
 #include "../AppState.h"
 
-TextField::TextField() : box(text) {}
+TextField::TextField() : box(text), placeHolderBox(placeHolderText) {
+  placeHolderBox.richRender = true;
+  placeHolderBox.renderCursor = false;
+  placeHolderBox.color = vec4fs(0.6);
+}
 bool TextField::canFocus() {
   return true;
 }
@@ -14,7 +18,10 @@ void TextField::onEnter() {
 }
 void TextField::render(float x, float y, float w, float h) {
   auto absolute = AppState::gState->getPositionAbsolute(x, y, w, h);
-  box.render(absolute.x, absolute.y, w, h);
+  if(text.data.size() || !placeHolderText.data.size())
+    box.render(absolute.x, absolute.y, w, h);
+  else 
+     placeHolderBox.render(absolute.x, absolute.y, w, h);
 }
 
 void TextField::onCodePoint(int32_t cp) {

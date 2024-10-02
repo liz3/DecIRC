@@ -1,6 +1,7 @@
 #ifndef DEC_GUI_COMPONENTS
 #define DEC_GUI_COMPONENTS
 #include "components/mouse_receiver.h"
+#include "components/search.h"
 class AppState;
 
 #include "./components/chat_input.h"
@@ -36,6 +37,8 @@ class GuiComponents {
   MessageList message_list;
   std::thread::id this_id = std::this_thread::get_id();
   bool locked = false;
+  bool search_active = false;
+  Search search;
   Popover* active_popover = nullptr;
 
   UserInfo userInfo;

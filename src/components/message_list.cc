@@ -3,7 +3,6 @@
 
 #include "../irc/message_state.h"
 #include "../gui_components.h"
-#include <algorithm>
 #include "../utils/web_util.h"
 
 bool MessageList::canFocus() {
@@ -20,7 +19,50 @@ void MessageList::render(float x, float y, float w, float h) {
   }
   auto window_width = AppState::gState->window_width;
   auto window_height = AppState::gState->window_height;
-
+  Search* search = &AppState::gState->components->search;
+  auto search_updated = false;
+  if (AppState::gState->components->active_popover == search &&
+      search->text.data.size()) {
+    std::string s = search->getText();
+    bool next = search->getNext() && search_index > -1;
+    if (s != lastSearch || next) {
+      size_t start = next && s == lastSearch ? search_index + 1 : 0;
+      bool found = false;
+      while (true) {
+        for (size_t i = start; i < messages.size(); i++) {
+          auto* current = messages[i];
+          if (current->m_holder->message.content.find(s) != std::string::npos) {
+            search_index = i;
+            search_result = current;
+            selected_index = messages.size() - i - 1;
+            found = true;
+            search_updated = true;
+            break;
+          }
+        }
+        if (!found && next) {
+          next = false;
+          start = 0;
+          continue;
+        }
+        break;
+      }
+      if (!found) {
+        search_index = -1;
+        search_result = nullptr;
+      }
+      lastSearch = s;
+    }
+  } else {
+    lastSearch = "";
+    search_index = -1;
+    search_result = nullptr;
+  }
+  if(search_result && search_updated) {
+    current_offset = search_result->start;
+    if(current_offset > height - available_height)
+      current_offset = height - available_height;
+  }
   Vec2f abs = vec2f(x - (window_width / 2), (y) - (window_height / 4));
   x = abs.x;
   y = abs.y * 2;
@@ -44,7 +86,7 @@ void MessageList::render(float x, float y, float w, float h) {
       start = true;
     }
     msg->fetchImages();
-    msg->render(x, -(y + offset), width, selected_i == i - 1 && msg->hasFocus);
+    msg->render(x, -(y + offset), width, selected_i == i - 1 && (msg->hasFocus || search_result == msg));
     offset += msg->height;
   }
 }
@@ -55,7 +97,6 @@ void RenderMessage::disposeImages() {
     return;
   for (auto*& image : images) {
     image->unref();
- 
   }
   initial_loading = false;
 }
@@ -63,11 +104,11 @@ void RenderMessage::fetchImages() {
   if (initial_loading)
     return;
   initial_loading = true;
-
 }
 void RenderMessage::render(float x, float y, float w, bool selected) {
   if (selected) {
-    Box::render(x, y + (atlas_height * 0.7), w, (-height), vec4f(0.25, 0.25, 0.25, 0.8));
+    Box::render(x, y + (atlas_height * 0.7), w, (-height),
+                vec4f(0.25, 0.25, 0.25, 0.8));
   }
   render_w = w;
   render_y = y + atlas_height;
@@ -77,16 +118,16 @@ void RenderMessage::render(float x, float y, float w, bool selected) {
   render_x = x;
 
   box.render(x + offset, y, w - offset, 0);
-    if(selected) {
+  if (selected) {
     TextWithState timeState(m_holder->message.getTimeFormatted());
     TextBox timeBox(timeState);
     timeBox.color = vec4fs(0.6);
     timeBox.scale = 0.6;
     timeBox.style = "bold";
-  
-    Box::render((x+w)-75, y, 70, atlas_height * 0.6, vec4f(0.1, 0.1, 0.1, 1));
-    timeBox.render((x+w)-70, y+5, 70, 0);
-   
+
+    Box::render((x + w) - 75, y, 70, atlas_height * 0.6,
+                vec4f(0.1, 0.1, 0.1, 1));
+    timeBox.render((x + w) - 70, y + 5, 70, 0);
   }
   y -= (content_height);
 
@@ -149,7 +190,8 @@ void MessageList::removeEntry(MessageHolder* h) {
 }
 void MessageList::recomputeHeights() {
   float current = 0.0;
-  bool bottom = current_offset == height - available_height && current_offset != 0;
+  bool bottom =
+      current_offset == height - available_height && current_offset != 0;
   float atlas_height = AppState::gState->atlas.effective_atlas_height;
   for (auto* e : messages) {
     float lHeight = (e->getHeight(width, atlas_height)) + 15;
@@ -194,6 +236,8 @@ void MessageList::clearList() {
   }
   messages.clear();
   selected_index = -1;
+  search_index = -1;
+  search_result = nullptr;
 }
 void MessageList::selectIndex(int32_t diff) {
   int target = selected_index;
@@ -213,26 +257,29 @@ void MessageList::selectIndex(int32_t diff) {
   AppState::gState->setTextReceiver(messages[selected_i]);
 }
 bool RenderMessage::isImage(std::string& url) {
-  for(const auto& entry : {".png", ".jpeg", ".jpg", ".webp", ".gif"}) {
-    if(url.find(entry) != std::string::npos)
+  for (const auto& entry : {".png", ".jpeg", ".jpg", ".webp", ".gif"}) {
+    if (url.find(entry) != std::string::npos)
       return true;
   }
 
   return false;
 }
 void MessageList::onMousePress(double x, double y, int button, int action) {
-  if(action != 0)
+  if (action != 0)
     return;
   auto* st = AppState::gState;
-    auto sc = st->window_scale;
-  for(size_t i = 0; i < messages.size(); i++) {
+  auto sc = st->window_scale;
+  for (size_t i = 0; i < messages.size(); i++) {
     auto* message = messages[i];
-    if(message->render_x == 0 || message->render_y == 0)
+    if (message->render_x == 0 || message->render_y == 0)
       continue;
-    float corrected_y = ((-message->render_y) + ((float)st->window_height / 2)) /sc;
-    float corrected_height =  (message->height)  /sc;
-    float corrected_x =  (message->render_x + ((float)st->window_width / 2)) / sc;
-    if(x >=corrected_x && x <= corrected_x + message->render_w && y >= corrected_y &&  y <= corrected_y + corrected_height) {
+    float corrected_y =
+        ((-message->render_y) + ((float)st->window_height / 2)) / sc;
+    float corrected_height = (message->height) / sc;
+    float corrected_x =
+        (message->render_x + ((float)st->window_width / 2)) / sc;
+    if (x >= corrected_x && x <= corrected_x + message->render_w &&
+        y >= corrected_y && y <= corrected_y + corrected_height) {
       selected_index = messages.size() - i - 1;
       AppState::gState->setTextReceiver(message);
       break;
@@ -240,8 +287,8 @@ void MessageList::onMousePress(double x, double y, int button, int action) {
   }
 }
 void MessageList::onMouseWheel(double xoffset, double yoffset) {
-  if(yoffset != 0)
-  changeScroll(-(yoffset*5));
+  if (yoffset != 0)
+    changeScroll(-(yoffset * 5));
 }
 RenderMessage::RenderMessage(MessageHolder* holder)
     : m_holder(holder), box(text), title_box(title) {
@@ -279,12 +326,12 @@ RenderMessage::RenderMessage(MessageHolder* holder)
       break;
     std::string start = cpy.substr(res);
     bool f = false;
-    for(size_t i = 0; i < start.length(); i++) {
+    for (size_t i = 0; i < start.length(); i++) {
       char c = start[i];
-      if(c < 33 || c > 126) {
+      if (c < 33 || c > 126) {
         f = true;
         std::string link = start.substr(0, i);
-        if(isImage(link))
+        if (isImage(link))
           fetchImage(link);
         links.push_back(link);
         cpy = start.substr(i);
@@ -292,7 +339,7 @@ RenderMessage::RenderMessage(MessageHolder* holder)
       }
     }
     if (!f) {
-      if(isImage(start))
+      if (isImage(start))
         fetchImage(start);
       links.push_back(start);
       break;
@@ -337,12 +384,12 @@ int RenderMessage::getHeight(float w, float ah) {
   //   base += (ah * 0.6) + ah;
 
   for (auto* image : images) {
-       auto h = image->height;
+    auto h = image->height;
     float scale = 1;
     if (image->width > w - 300) {
       float ww = w - 300 > 650.0 ? 650.0 : w - 300;
       scale = ww / image->width;
-    }  
+    }
     base += (h * scale) + 10;
   }
   // for (std::map<std::string, DiscordMessageAttachment>::iterator it =
@@ -452,8 +499,8 @@ void EmbedRender::render(float x, float y, float w) {
     y -= f_box.computeHeight(w) * ah;
   }
 }
-void RenderMessage::onEnter(){};
-void RenderMessage::onCodePoint(int32_t cp){};
+void RenderMessage::onEnter() {};
+void RenderMessage::onCodePoint(int32_t cp) {};
 void RenderMessage::onKey(GLFWwindow* window,
                           int key,
                           int scancode,
@@ -461,19 +508,19 @@ void RenderMessage::onKey(GLFWwindow* window,
                           int mods) {
   if (action != GLFW_PRESS)
     return;
-       bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
+  bool ctrl_pressed = glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS ||
                       glfwGetKey(window, GLFW_KEY_RIGHT_CONTROL) == GLFW_PRESS;
-      bool alt_pressed =
-          glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
+  bool alt_pressed = glfwGetKey(window, GLFW_KEY_LEFT_ALT) == GLFW_PRESS;
   if (key == GLFW_KEY_Q) {
-     if(!ctrl_pressed && !alt_pressed)
-        return;
-      auto* st = AppState::gState;
-      if(ctrl_pressed)
+    if (!ctrl_pressed && !alt_pressed)
+      return;
+    auto* st = AppState::gState;
+    if (ctrl_pressed)
       st->components->chat_input.text.setData("> " + getText() + " ");
-      else
-      st->components->chat_input.text.setData(m_holder->message.source.getName()+": ");
-      st->setTextReceiver(&st->components->chat_input);
+    else
+      st->components->chat_input.text.setData(
+          m_holder->message.source.getName() + ": ");
+    st->setTextReceiver(&st->components->chat_input);
     return;
   }
   bool d_pressed = glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS;
@@ -508,7 +555,7 @@ bool RenderMessage::canFocus() {
 void RenderMessage::onFocus(bool focus) {
   hasFocus = focus;
 };
-void RenderMessage::render(float x, float y, float w, float h){
+void RenderMessage::render(float x, float y, float w, float h) {
 
 };
 
