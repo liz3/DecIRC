@@ -27,6 +27,7 @@
 #include <wayland-client-core.h>
 #include <xkbcommon/xkbcommon.h>
 #include <xkbcommon/xkbcommon-compose.h>
+#include "internal.h"
 
 typedef VkFlags VkWaylandSurfaceCreateFlagsKHR;
 
@@ -224,6 +225,7 @@ typedef struct _GLFWofferWayland
     struct wl_data_offer*       offer;
     GLFWbool                    text_plain_utf8;
     GLFWbool                    text_uri_list;
+    GLFWbool                    is_png;
 } _GLFWofferWayland;
 
 // Wayland-specific per-window data
@@ -299,6 +301,7 @@ typedef struct _GLFWlibraryWayland
     unsigned int                offerCount;
 
     struct wl_data_offer*       selectionOffer;
+    struct wl_data_offer*       selectionOfferPng;
     struct wl_data_source*      selectionSource;
 
     struct wl_data_offer*       dragOffer;

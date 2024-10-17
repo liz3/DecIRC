@@ -31,19 +31,19 @@ set(MBEDTLS_VERSION_GREATER_THAN_3 ON)
 set(FT_WITH_PNG ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-set(DEC_SOURCES src/irc/irc_socket.cc 
-  src/irc/irc_client.cc src/irc/irc_pool.cc 
-  src/rendering/opengl_state.cc src/rendering/glad.c 
-  src/rendering/font_atlas.cc src/gui_components.cc 
-  src/AppState.cc src/rendering/text_box.cc 
+set(DEC_SOURCES src/irc/irc_socket.cc
+  src/irc/irc_client.cc src/irc/irc_pool.cc
+  src/rendering/opengl_state.cc src/rendering/glad.c
+  src/rendering/font_atlas.cc src/gui_components.cc
+  src/AppState.cc src/rendering/text_box.cc
   src/rendering/la.cc src/rendering/text.cc
-  src/rendering/shader.cc src/components/search_list.cc 
-  src/main.cc src/components/user_info.cc 
-  src/components/user_list.cc src/components/channel_list.cc 
-  src/components/text_field.cc src/components/message_list.cc 
-  src/irc/irc_event_handler.cc src/irc/image_cache.cc 
+  src/rendering/shader.cc src/components/search_list.cc
+  src/main.cc src/components/user_info.cc
+  src/components/user_list.cc src/components/channel_list.cc
+  src/components/text_field.cc src/components/message_list.cc
+  src/irc/irc_event_handler.cc src/irc/image_cache.cc
   src/irc/message_state.cc src/irc/message_util.cc third-party/png/lodepng.cpp
-  third-party/gifdec/gifdec.c src/components/image_overlay.cc 
+  third-party/gifdec/gifdec.c src/components/image_overlay.cc
   src/utils/notifications.cc src/utils/config.cc src/utils/web_util.cc src/utils/url_handler.cc src/utils/url_parser.cc)
 
 if(WIN32)
@@ -100,7 +100,7 @@ endif()
 add_subdirectory(third-party/libjpeg)
 add_subdirectory(third-party/libwebp)
 if(UNIX AND NOT APPLE)
-    if(GLFW_USE_WAYLAND)
+    if(GLFW_USE_WAYLAND OR GLFW_BUILD_WAYLAND)
         set(GLFW_BUILD_X11 OFF)
         set(GLFW_BUILD_WAYLAND ON)
     else()
@@ -133,9 +133,9 @@ if(UNIX AND NOT APPLE)
  add_subdirectory(third-party/libnotify)
 target_include_directories(DecIrc PRIVATE third-party/libnotify)
 target_link_libraries(DecIrc PUBLIC libnotify)
-  pkg_check_modules(GLIB REQUIRED glib-2.0) 
+  pkg_check_modules(GLIB REQUIRED glib-2.0)
   target_include_directories(DecIrc PRIVATE ${GLIB_INCLUDE_DIRS})
-    pkg_check_modules(PIXBUF REQUIRED gdk-pixbuf-2.0) 
+    pkg_check_modules(PIXBUF REQUIRED gdk-pixbuf-2.0)
 target_include_directories(DecIrc PRIVATE ${PIXBUF_INCLUDE_DIRS})
 
 endif()

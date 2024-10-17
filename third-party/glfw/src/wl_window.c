@@ -816,7 +816,7 @@ static void handleEvents(double* timeout)
 
 // Reads the specified data offer as the specified MIME type
 //
-static char* readDataOfferAsString(struct wl_data_offer* offer, const char* mimeType)
+static char* readDataOfferAsString(struct wl_data_offer* offer, const char* mimeType, size_t* target_size)
 {
     int fds[2];
 
@@ -873,7 +873,8 @@ static char* readDataOfferAsString(struct wl_data_offer* offer, const char* mime
     }
 
     close(fds[0]);
-
+    if(target_size) 
+        *target_size = length;
     string[length] = '\0';
     return string;
 }
@@ -1536,6 +1537,8 @@ static void dataOfferHandleOffer(void* userData,
                 _glfw.wl.offers[i].text_plain_utf8 = GLFW_TRUE;
             else if (strcmp(mimeType, "text/uri-list") == 0)
                 _glfw.wl.offers[i].text_uri_list = GLFW_TRUE;
+            else if (strcmp(mimeType, "image/png") == 0)
+                _glfw.wl.offers[i].is_png = GLFW_TRUE;
 
             break;
         }
@@ -1637,7 +1640,7 @@ static void dataDeviceHandleDrop(void* userData,
     if (!_glfw.wl.dragOffer)
         return;
 
-    char* string = readDataOfferAsString(_glfw.wl.dragOffer, "text/uri-list");
+    char* string = readDataOfferAsString(_glfw.wl.dragOffer, "text/uri-list", NULL);
     if (string)
     {
         int count;
@@ -1663,6 +1666,11 @@ static void dataDeviceHandleSelection(void* userData,
         wl_data_offer_destroy(_glfw.wl.selectionOffer);
         _glfw.wl.selectionOffer = NULL;
     }
+        if (_glfw.wl.selectionOfferPng)
+    {
+        wl_data_offer_destroy(_glfw.wl.selectionOfferPng);
+        _glfw.wl.selectionOfferPng = NULL;
+    }
 
     for (unsigned int i = 0; i < _glfw.wl.offerCount; i++)
     {
@@ -1670,6 +1678,8 @@ static void dataDeviceHandleSelection(void* userData,
         {
             if (_glfw.wl.offers[i].text_plain_utf8)
                 _glfw.wl.selectionOffer = offer;
+            else if (_glfw.wl.offers[i].is_png)
+                _glfw.wl.selectionOfferPng = offer;
             else
                 wl_data_offer_destroy(offer);
 
@@ -2574,7 +2584,16 @@ void _glfwSetClipboardStringWayland(const char* string)
                                  _glfw.wl.serial);
 }
 const char* _glfwGetClipboardPngWayland(GLFWimage* size) {
-    return NULL;
+       if (!_glfw.wl.selectionOfferPng)
+    {
+        return NULL;
+    }
+ 
+
+    _glfw_free(_glfw.wl.clipboardString);
+    _glfw.wl.clipboardString =
+        readDataOfferAsString(_glfw.wl.selectionOfferPng, "image/png", &(size->size));
+    return _glfw.wl.clipboardString;
 }
 const char* _glfwGetClipboardStringWayland(void)
 {
@@ -2590,7 +2609,7 @@ const char* _glfwGetClipboardStringWayland(void)
 
     _glfw_free(_glfw.wl.clipboardString);
     _glfw.wl.clipboardString =
-        readDataOfferAsString(_glfw.wl.selectionOffer, "text/plain;charset=utf-8");
+        readDataOfferAsString(_glfw.wl.selectionOffer, "text/plain;charset=utf-8", NULL);
     return _glfw.wl.clipboardString;
 }
 
